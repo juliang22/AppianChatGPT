@@ -1,20 +1,42 @@
 import { MDBIcon } from 'mdb-react-ui-kit'
-import React, { useContext } from 'react'
+import React, { useContext, useEffect } from 'react'
 import { useState } from 'react';
-import { v4 as uuidv4 } from "uuid";
-import { L_BLUE, USER } from '../../constants';
+import { L_BLUE, USER, GPT } from '../../constants';
 import AppianContext from "../../context/AppianContext"
 
 const Input = ({ conversation, setConversation }) => {
-	const { Appian } = useContext(AppianContext)
+	const { Appian, allparameters } = useContext(AppianContext)
 	const [message, setMessage] = useState("")
+	const [connectedSystem, setConnectedSystem] = useState("")
 
-	function addItem() {
+	useEffect(() => {
+		allparameters["openAIConnectedSystem"] !== null && allparameters["openAIConnectedSystem"] !== undefined ?
+			setConnectedSystem(allparameters["openAIConnectedSystem"]) :
+			Appian.Component.setValidations("Missing Required Parameter: openAIConnectedSystem")
+	}, [Appian.Component, Appian.allparameters, allparameters]);
+
+	async function addItem() {
 		if (message !== undefined && message !== null && message.trim() !== "") {
-			setConversation([...conversation, { id: uuidv4(), message, messageSender: USER }]);
+			const updatedConversation = [...conversation, { role: USER, content: message }]
+			setConversation(updatedConversation)
 			setMessage("")
+			const response = await handleClientApi(connectedSystem, "chatCompletion", { messages: updatedConversation, model: "gpt-3.5-turbo" })
+			response?.type === "INVOCATION_SUCCESS" ?
+				setConversation([...updatedConversation, { role: GPT, content: response?.payload?.choices[0]?.message?.content }]) :
+				setConversation([...updatedConversation, { role: GPT, content: `Unable to connect to ChatGPT. Error: ${response?.payload}` }])
 		}
 	}
+
+	async function handleClientApi(connectedSystem, friendlyName, payload) {
+		return await Appian.Component.invokeClientApi(
+			connectedSystem,
+			friendlyName,
+			payload
+		);
+	}
+
+
+
 
 	return (
 		<div className="text-muted d-flex justify-content-start align-items-start ">

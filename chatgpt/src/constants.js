@@ -1,4 +1,5 @@
-export const GPT = "GPT";
+export const SYSTEM = "system";
+export const GPT = "assistant";
 export const USER = "user";
 export const DATE = new window.Date();
 export const L_BLUE = "#2621F6";

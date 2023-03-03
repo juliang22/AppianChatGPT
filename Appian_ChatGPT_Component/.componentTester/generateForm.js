@@ -8,7 +8,7 @@ container.appendChild(componentDiv);
 
 var variableInputs = document.getElementById('variableInputs');
 
-componentDescriptor = undefined;
+componentDescriptor = [{"name":["openAIConnectedSystem"],"category":["input-only"],"type":["ConnectedSystem"]}];
 var defaultValues = {};
 
 connectedSystemKeys = [];
