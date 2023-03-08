@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useContext } from "react";
 import {
   MDBContainer,
   MDBRow,
@@ -10,32 +10,62 @@ import {
   MDBCardFooter,
   MDBCollapse,
 } from "mdb-react-ui-kit";
+
 import Date from "./Components/Date";
 import Input from "./Components/chat/Input";
 import Bubble from "./Components/chat/Bubble";
-import { D_BLUE, GPT, SYSTEM } from "./constants";
+import {
+  D_BLUE,
+  GPT, SYSTEM,
+  DEFAULT_SYSTEM_MESSAGE,
+  DEFAULT_INITIAL_MESSAGE,
+  SYSTEM_MESSAGE_KEY,
+  INITIAL_MESSAGE_KEY,
+  DEFAULT_MODEL,
+  MODEL_KEY
+} from "./constants";
+import AppianContext from "./context/AppianContext"
 
 export default function App() {
+  const messagesContainerRef = useRef(null);
+  const { allparameters } = useContext(AppianContext)
+
+
   const [showShow, setShowShow] = useState(false);
   const [conversation, setConversation] = useState([
-    // {
-    //   role: SYSTEM,
-    //   content: "You are a representative for Appian Corporation. You believe that Appian is the best low-code process automation platform and is the solution for enterprise business applications."
-    // },
-    {
-      role: GPT,
-      content: "Hi, I'm AppianGPT. How can I help you?"
-    }
+    { role: SYSTEM, content: allparameters[SYSTEM_MESSAGE_KEY] || DEFAULT_SYSTEM_MESSAGE },
+    { role: GPT, content: allparameters[INITIAL_MESSAGE_KEY] || DEFAULT_INITIAL_MESSAGE }
   ]);
+  const [model, setModel] = useState(allparameters[MODEL_KEY] || DEFAULT_MODEL)
 
-  const messagesContainerRef = useRef(null);
+  // toggle for collapsing UI
   const toggleShow = () => setShowShow(!showShow);
 
-  // Scroll to the bottom of the container whenever the messages change
+  useEffect(() => {
+
+    // setting new model if user provided
+    setModel(allparameters[MODEL_KEY] || DEFAULT_MODEL);
+
+    // setting new system/initial message it user provided
+    let systemMessage = allparameters[SYSTEM_MESSAGE_KEY] || DEFAULT_SYSTEM_MESSAGE;
+    let initialMessage = allparameters[INITIAL_MESSAGE_KEY] || DEFAULT_INITIAL_MESSAGE;
+    setConversation((prevConversation) => {
+      const newDefaultSystemMessage = { role: SYSTEM, content: systemMessage };
+      const newDefaultInitialMessage = { role: GPT, content: initialMessage };
+      return [newDefaultSystemMessage, newDefaultInitialMessage, ...prevConversation.slice(2, prevConversation.length)];
+    });
+
+
+
+  }, [allparameters]);
+
+  // Use an effect to scroll to the bottom of the messages container
   useEffect(() => {
     const messagesContainer = messagesContainerRef.current;
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
   }, [conversation]);
+
+  console.log(allparameters[SYSTEM_MESSAGE_KEY], allparameters[INITIAL_MESSAGE_KEY], allparameters[MODEL_KEY], conversation)
 
   return (
     <MDBContainer fluid className="py-5" style={{ overflow: "auto" }} ref={messagesContainerRef}>
@@ -52,16 +82,19 @@ export default function App() {
               <MDBCardBody>
                 <Date />
                 {conversation.map((convo, i) =>
-                  // i != 0 && 
+                  i !== 0 &&
                   <Bubble
                     role={convo.role}
                     content={convo.content}
-                    key={Math.random() * 1000}
+                    key={i}
                   />)}
               </MDBCardBody>
 
               <MDBCardFooter >
-                <Input conversation={conversation} setConversation={setConversation} />
+                <Input
+                  conversation={conversation}
+                  setConversation={setConversation}
+                  model={model} />
               </MDBCardFooter>
             </MDBCard>
           </MDBCollapse>

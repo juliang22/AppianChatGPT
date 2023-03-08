@@ -15,3 +15,11 @@ export const OPENAI_LOGO = <img
 	alt="avatar 1"
 	style={{ width: "45px", height: "100%" }}
 />
+
+export const DEFAULT_SYSTEM_MESSAGE = "You are a helpful assistant.";
+export const SYSTEM_MESSAGE_KEY = "systemMessage";
+
+export const DEFAULT_INITIAL_MESSAGE = "Hi, I'm AppianGPT. How can I help you?";
+export const INITIAL_MESSAGE_KEY = "initialMessage";
+export const DEFAULT_MODEL = "gpt-3.5-turbo";
+export const MODEL_KEY = "model";

@@ -16,5 +16,20 @@
       <category>input-only</category>
       <type>ConnectedSystem</type>
     </parameter>
+    <parameter>
+      <name>systemMessage</name>
+      <category>input-only</category>
+      <type>Text</type>
+    </parameter>
+    <parameter>
+      <name>initialMessage</name>
+      <category>input-only</category>
+      <type>Text</type>
+    </parameter>
+    <parameter>
+      <name>model</name>
+      <category>input-only</category>
+      <type>Text</type>
+    </parameter>
   </component>
 </appian-component-plugin>

@@ -4,26 +4,31 @@ import { useState } from 'react';
 import { L_BLUE, USER, GPT } from '../../constants';
 import AppianContext from "../../context/AppianContext"
 
-const Input = ({ conversation, setConversation }) => {
+const Input = ({ conversation, setConversation, model }) => {
 	const { Appian, allparameters } = useContext(AppianContext)
 	const [message, setMessage] = useState("")
 	const [connectedSystem, setConnectedSystem] = useState("")
 
 	useEffect(() => {
+		// Checking if required connectedSystem parameter exists
 		allparameters["openAIConnectedSystem"] !== null && allparameters["openAIConnectedSystem"] !== undefined ?
 			setConnectedSystem(allparameters["openAIConnectedSystem"]) :
 			Appian.Component.setValidations("Missing Required Parameter: openAIConnectedSystem")
-	}, [Appian.Component, Appian.allparameters, allparameters]);
+
+	}, [Appian.Component, allparameters]);
 
 	async function addItem() {
 		if (message !== undefined && message !== null && message.trim() !== "") {
 			const updatedConversation = [...conversation, { role: USER, content: message }]
 			setConversation(updatedConversation)
 			setMessage("")
-			const response = await handleClientApi(connectedSystem, "chatCompletion", { messages: updatedConversation, model: "gpt-3.5-turbo" })
-			response?.type === "INVOCATION_SUCCESS" ?
-				setConversation([...updatedConversation, { role: GPT, content: response?.payload?.choices[0]?.message?.content }]) :
-				setConversation([...updatedConversation, { role: GPT, content: `Unable to connect to ChatGPT. Error: ${response?.payload}` }])
+			const response = await handleClientApi(
+				connectedSystem,
+				"chatCompletion",
+				{ messages: updatedConversation.filter((item) => !item.hasOwnProperty("error")), model })
+			response?.payload?.error ?
+				setConversation([...updatedConversation, { role: GPT, content: `Unable to connect to ChatGPT. Error: ${JSON.stringify(response?.payload)}`, error: true }]) :
+				setConversation([...updatedConversation, { role: GPT, content: response?.payload?.choices[0]?.message?.content }])
 		}
 	}
 
