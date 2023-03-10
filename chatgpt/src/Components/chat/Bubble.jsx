@@ -1,18 +1,26 @@
 import React from 'react'
-import { GPT, USER, OPENAI_LOGO, APPIAN_LOGO } from '../../constants'
+import { GPT, USER } from '../../constants'
 import Message from './Message'
 
-const Bubble = ({ role, content }) => {
+const Bubble = ({ role, content, style, userIcon, GPTIcon }) => {
 
 	return role === USER ? (
 		<div className="d-flex flex-row justify-content-end mb-4 pt-1">
-			<Message role={USER} content={content} />
-			{APPIAN_LOGO}
+			<Message role={USER} content={content} style={style} />
+			<img
+				src={userIcon}
+				alt="avatar 1"
+				style={{ width: "45px", height: "100%" }}
+			/>
 		</div>
 	) : (
 		<div className="d-flex flex-row justify-content-start mb-3">
-			{OPENAI_LOGO}
-			<Message role={GPT} content={content} />
+			<img
+				src={GPTIcon}
+				alt="avatar 1"
+				style={{ width: "45px", height: "100%" }}
+			/>
+			<Message role={GPT} content={content} style={style} />
 		</div>
 	)
 

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { L_BLUE, USER, GPT } from '../../constants';
 import AppianContext from "../../context/AppianContext"
 
-const Input = ({ conversation, setConversation, model }) => {
+const Input = ({ conversation, setConversation, model, temperature, top_p, n, stop, max_tokens, presence_penalty, frequency_penalty, user, sendButtonColor }) => {
 	const { Appian, allparameters } = useContext(AppianContext)
 	const [message, setMessage] = useState("")
 	const [connectedSystem, setConnectedSystem] = useState("")
@@ -25,10 +25,27 @@ const Input = ({ conversation, setConversation, model }) => {
 			const response = await handleClientApi(
 				connectedSystem,
 				"chatCompletion",
-				{ messages: updatedConversation.filter((item) => !item.hasOwnProperty("error")), model })
+				{
+					messages: updatedConversation.filter((item) => !item.hasOwnProperty("error")),
+					model,
+					// if the value is truthy, spread the object into the main payload, if not, don't add it as a param to the payload
+					...(temperature && { temperature }),
+					...(top_p && { top_p }),
+					...(n && { n }),
+					...(stop && { stop }),
+					...(max_tokens && { max_tokens }),
+					...(presence_penalty && { presence_penalty }),
+					...(frequency_penalty && { frequency_penalty }),
+					...(user && { user })
+				}
+			)
+
+			// Response
 			response?.payload?.error ?
-				setConversation([...updatedConversation, { role: GPT, content: `Unable to connect to ChatGPT. Error: ${JSON.stringify(response?.payload)}`, error: true }]) :
-				setConversation([...updatedConversation, { role: GPT, content: response?.payload?.choices[0]?.message?.content }])
+				setConversation([...updatedConversation, { role: GPT, content: `Unable to connect to ChatGPT. Error: ${JSON.stringify(JSON.stringify(response?.payload))}`, error: true }]) :
+				setConversation(
+					[...updatedConversation, ...response?.payload?.choices.map(curr => { return { role: GPT, content: curr.message?.content } })]
+				)
 		}
 	}
 
@@ -56,7 +73,7 @@ const Input = ({ conversation, setConversation, model }) => {
 				onKeyDown={e => e.key === "Enter" && addItem()}
 			/>
 			<a className="ms-3" href="#!">
-				<MDBIcon style={{ color: L_BLUE }} fas icon="paper-plane" size="2x" onClick={addItem} />
+				<MDBIcon style={{ color: sendButtonColor }} fas icon="paper-plane" size="2x" onClick={addItem} />
 			</a>
 		</div>
 	)

@@ -1,20 +1,20 @@
 import React from 'react'
 import { L_BLUE, USER } from '../../constants'
 
-const UserMessage = ({ role, content }) => {
+const UserMessage = ({ role, content, style: { GPTTextColor, GPTChatColor, userTextColor, userChatColor } }) => {
 
 	return (
 		role === USER ? (
 			<div>
-				<p className="small p-2 me-3 mb-1 text-white rounded-3 "
-					style={{ backgroundColor: L_BLUE }}>
+				<p className="small p-2 me-3 mb-1 rounded-3"
+					style={{ backgroundColor: userChatColor, color: userTextColor }}>
 					{content}
 				</p>
 			</div>
 		) : (
 			<div>
 				<p className="small p-2 ms-3 mb-1 rounded-3"
-					style={{ backgroundColor: "#f5f6f7" }}>
+					style={{ backgroundColor: GPTChatColor, color: GPTTextColor }}>
 					{content}
 				</p>
 			</div>

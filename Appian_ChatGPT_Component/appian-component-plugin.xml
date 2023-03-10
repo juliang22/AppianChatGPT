@@ -31,5 +31,50 @@
       <category>input-only</category>
       <type>Text</type>
     </parameter>
+    <parameter>
+      <name>temperature</name>
+      <category>input-only</category>
+      <type>Decimal</type>
+    </parameter>
+    <parameter>
+      <name>top_p</name>
+      <category>input-only</category>
+      <type>Decimal</type>
+    </parameter>
+    <parameter>
+      <name>n</name>
+      <category>input-only</category>
+      <type>Integer</type>
+    </parameter>
+    <parameter>
+      <name>stop</name>
+      <category>input-only</category>
+      <type>Text?list</type>
+    </parameter>
+    <parameter>
+      <name>max_tokens</name>
+      <category>input-only</category>
+      <type>Integer</type>
+    </parameter>
+    <parameter>
+      <name>presence_penalty</name>
+      <category>input-only</category>
+      <type>Decimal</type>
+    </parameter>
+    <parameter>
+      <name>frequency_penalty</name>
+      <category>input-only</category>
+      <type>Decimal</type>
+    </parameter>
+    <parameter>
+      <name>user</name>
+      <category>input-only</category>
+      <type>Text</type>
+    </parameter>
+    <parameter>
+      <name>style</name>
+      <category>input-only</category>
+      <type>Dictionary</type>
+    </parameter>
   </component>
 </appian-component-plugin>
