@@ -10,7 +10,9 @@ import {
   MDBCardFooter,
   MDBCollapse,
 } from "mdb-react-ui-kit";
+import Lottie from "lottie-react";
 
+import typingGif from './Animations/typing.json'
 import Date from "./Components/Date";
 import Input from "./Components/chat/Input";
 import Bubble from "./Components/chat/Bubble";
@@ -48,14 +50,16 @@ import {
   GPT_ICON_KEY,
   OPENAI_ICON,
   APPIAN_ICON,
+  CHAT_HEIGHT_KEY,
+  CHAT_HEIGHT_DEFAULT
 } from "./constants";
 import AppianContext from "./context/AppianContext"
 import { isHexCode, isValidUrl } from "./Util";
+import Icon from "./Components/chat/Icon";
 
 export default function App() {
   const messagesContainerRef = useRef(null);
   const { allparameters, Appian } = useContext(AppianContext)
-
 
   const [showShow, setShowShow] = useState(false);
   const [conversation, setConversation] = useState([
@@ -86,11 +90,25 @@ export default function App() {
   const [userChatColor, setUserChatColor] = useState(L_BLUE)
   const [sendButtonColor, setSendButtonColor] = useState(L_BLUE)
 
+  // Height
+  const [topBarHeight, setTopBarHeight] = useState(CHAT_HEIGHT_DEFAULT);
+  const topBarRef = useRef(null);
+
+  // Typing indicator
+  const [isLoading, setIsLoading] = useState(false)
 
   // toggle for collapsing UI
   const toggleShow = () => setShowShow(!showShow);
 
   useEffect(() => {
+    // Setting Height
+    setTopBarHeight(allparameters[CHAT_HEIGHT_KEY] || allparameters[CHAT_HEIGHT_KEY] === "auto" ? CHAT_HEIGHT_DEFAULT : allparameters[CHAT_HEIGHT_KEY])
+  }, [topBarRef.current?.clientHeight, allparameters]);
+
+  useEffect(() => {
+
+    // Setting chat height
+    setTopBarHeight(allparameters[CHAT_HEIGHT_KEY] || CHAT_HEIGHT_DEFAULT)
 
     // Setting new model if user provided
     setModel(allparameters[MODEL_KEY] || DEFAULT_MODEL);
@@ -169,14 +187,13 @@ export default function App() {
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
   }, [conversation]);
 
-  console.log(allparameters[SYSTEM_MESSAGE_KEY], allparameters[INITIAL_MESSAGE_KEY], allparameters[MODEL_KEY], conversation)
 
   return (
-    <MDBContainer fluid className="py-5" style={{ overflow: "auto" }} ref={messagesContainerRef}>
+    <MDBContainer fluid style={{ overflow: "auto", "overflowX": "hidden", padding: 0 }} ref={messagesContainerRef}>
       <MDBRow className="d-flex justify-content-center">
-        <MDBCol md="8" lg="6" xl="4" style={{ height: "500px" }}>
+        <MDBCol md="8" lg="6" xl="4" style={{ width: "100%", height: showShow ? topBarHeight : "auto" }}>
           <MDBBtn onClick={toggleShow} style={{ backgroundColor: titleBackgroundColor, textTransform: "none", fontSize: "1.1rem" }} size="lg" block>
-            <div class="d-flex justify-content-between align-items-center" style={{ color: titleTextColor }}>
+            <div class="d-flex justify-content-between align-items-center" style={{ color: titleTextColor, height: topBarRef.current?.clientHeight }} ref={topBarRef}>
               {titleText}
               <MDBIcon fas icon="chevron-down" />
             </div>
@@ -195,6 +212,14 @@ export default function App() {
                     userIcon={userIcon}
                     GPTIcon={GPTIcon}
                   />)}
+                {isLoading && (
+                  <div className="d-flex flex-row justify-content-start mb-3">
+                    <Icon icon={GPTIcon} />
+                    <p className="small p-2 ms-3 mb-1 rounded-3">
+                      <Lottie animationData={typingGif} loop={true} style={{ width: 70, height: 35 }} />
+                    </p>
+                  </div>
+                )}
               </MDBCardBody>
 
               <MDBCardFooter >
@@ -211,6 +236,7 @@ export default function App() {
                   frequency_penalty={frequency_penalty}
                   user={user}
                   sendButtonColor={sendButtonColor}
+                  setIsLoading={setIsLoading}
                 />
               </MDBCardFooter>
             </MDBCard>

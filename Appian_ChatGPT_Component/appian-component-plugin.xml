@@ -9,7 +9,7 @@
   <component rule-name="ChatGPTChatBot" version="1.0.0">
     <sdk-version>2.0.0</sdk-version>
     <supported-user-agents>chrome firefox ie11 edge safari mobile</supported-user-agents>
-    <icon-file>image.svg</icon-file>
+    <icon-file>OpenAI.svg</icon-file>
     <html-entry-point>index.html</html-entry-point>
     <parameter>
       <name>openAIConnectedSystem</name>
@@ -75,6 +75,11 @@
       <name>style</name>
       <category>input-only</category>
       <type>Dictionary</type>
+    </parameter>
+    <parameter>
+      <name>chatHeight</name>
+      <category>input-only</category>
+      <type>Text</type>
     </parameter>
   </component>
 </appian-component-plugin>

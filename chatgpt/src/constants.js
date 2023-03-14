@@ -36,6 +36,8 @@ export const SEND_BUTTON_COLOR_KEY = "sendButtonColor";
 
 export const GPT_ICON_KEY = "GPTIcon";
 export const USER_ICON_KEY = "userIcon";
+export const CHAT_HEIGHT_KEY = "chatHeight";
+export const CHAT_HEIGHT_DEFAULT = "500px";
 
 // Default styles
 export const DEFAULT_TITLE_TEXT = "Appian Assist";

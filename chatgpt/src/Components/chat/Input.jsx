@@ -1,10 +1,10 @@
 import { MDBIcon } from 'mdb-react-ui-kit'
 import React, { useContext, useEffect } from 'react'
 import { useState } from 'react';
-import { L_BLUE, USER, GPT } from '../../constants';
+import { USER, GPT } from '../../constants';
 import AppianContext from "../../context/AppianContext"
 
-const Input = ({ conversation, setConversation, model, temperature, top_p, n, stop, max_tokens, presence_penalty, frequency_penalty, user, sendButtonColor }) => {
+const Input = ({ conversation, setConversation, model, temperature, top_p, n, stop, max_tokens, presence_penalty, frequency_penalty, user, sendButtonColor, setIsLoading }) => {
 	const { Appian, allparameters } = useContext(AppianContext)
 	const [message, setMessage] = useState("")
 	const [connectedSystem, setConnectedSystem] = useState("")
@@ -21,6 +21,7 @@ const Input = ({ conversation, setConversation, model, temperature, top_p, n, st
 		if (message !== undefined && message !== null && message.trim() !== "") {
 			const updatedConversation = [...conversation, { role: USER, content: message }]
 			setConversation(updatedConversation)
+			setIsLoading(true)
 			setMessage("")
 			const response = await handleClientApi(
 				connectedSystem,
@@ -40,9 +41,17 @@ const Input = ({ conversation, setConversation, model, temperature, top_p, n, st
 				}
 			)
 
+			setIsLoading(false)
 			// Response
 			response?.payload?.error ?
-				setConversation([...updatedConversation, { role: GPT, content: `Unable to connect to ChatGPT. Error: ${JSON.stringify(JSON.stringify(response?.payload))}`, error: true }]) :
+				setConversation(
+					[
+						...updatedConversation,
+						{
+							role: GPT,
+							content: `Unable to connect to ChatGPT. Error: ${JSON.stringify(JSON.stringify(response?.payload?.error?.message)).replace(/"/g, '\\"').replace(/\\|"|'/g, '')}, ErrorCode: ${JSON.stringify(JSON.stringify(response?.payload?.error?.type)).replace(/"/g, '\\"').replace(/\\|"|'/g, '')}`, error: true
+						}
+					]) :
 				setConversation(
 					[...updatedConversation, ...response?.payload?.choices.map(curr => { return { role: GPT, content: curr.message?.content } })]
 				)
