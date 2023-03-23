@@ -1,6 +1,8 @@
 import { MDBIcon } from 'mdb-react-ui-kit'
 import React, { useContext, useEffect } from 'react'
 import { useState } from 'react';
+import iconv from 'iconv-lite'
+
 import { USER, GPT } from '../../constants';
 import AppianContext from "../../context/AppianContext"
 
@@ -40,6 +42,15 @@ const Input = ({ conversation, setConversation, model, temperature, top_p, n, st
 					...(user && { user })
 				}
 			)
+			// .then(response => {
+			// 	const msg = JSON.stringify(response?.payload?.choices[0]?.message.content);
+			// 	console.log("msg", msg);
+			// 	const buf = iconv.encode(msg, 'ISO-8859-1');
+			// 	console.log("buf", buf);
+			// 	const utf8Data = iconv.decode(buf, 'utf8');
+			// 	console.log("done", utf8Data);
+			// 	return utf8Data
+			// });
 
 			setIsLoading(false)
 			// Response
@@ -55,6 +66,32 @@ const Input = ({ conversation, setConversation, model, temperature, top_p, n, st
 				setConversation(
 					[...updatedConversation, ...response?.payload?.choices.map(curr => { return { role: GPT, content: curr.message?.content } })]
 				)
+
+			// Save data in Appian record for auditing
+			if (allparameters["webhook"] && allparameters["webhook"]?.["url"] && allparameters["webhook"]?.["webApiKey"]) {
+				const url = 'https://julian-site.appianci.net/suite/webapi/N9bgEQ';
+				const token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI0MzY1MTVhYS1hYmI4LTQxMjQtOGVmMi00MTM3MjMxZTIyNTUifQ.pgxixl7EL7t6vr6kLbYDTsV0UJZ74Yip6pORe8_unG0';
+
+				const payload = {
+					role: 'user',
+					content: 'hello world',
+					conversationId: 1,
+					messageOrder: 1
+				};
+
+				fetch(url, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						'Authorization': `Bearer ${token}`
+					},
+					body: JSON.stringify(payload)
+				})
+					.then(response => response.json())
+					.then(data => console.log(data))
+					.catch(error => console.error(error));
+			}
+
 		}
 	}
 

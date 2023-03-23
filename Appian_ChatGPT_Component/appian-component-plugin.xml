@@ -81,5 +81,10 @@
       <category>input-only</category>
       <type>Text</type>
     </parameter>
+    <parameter>
+      <name>webhook</name>
+      <category>input-only</category>
+      <type>Dictionary</type>
+    </parameter>
   </component>
 </appian-component-plugin>
