@@ -44,11 +44,8 @@ const Input = ({ conversation, setConversation, model, temperature, top_p, n, st
 			)
 
 			setIsLoading(false)
-			console.log(response);
-			console.log(response.payload);
-			console.log(response.payload.messages[0]);
-			// Response
 
+			// Response
 			response?.payload?.error ?
 				setConversation(
 					[
@@ -61,37 +58,14 @@ const Input = ({ conversation, setConversation, model, temperature, top_p, n, st
 				setConversation(
 					[
 						...updatedConversation,
-						...response?.payload?.messages.map(curr => { return { role: GPT, content: new TextDecoder("utf-8").decode(new Uint8Array([...atob(curr)].map(char => char.charCodeAt(0)))) } })
+						...response?.payload?.messages.map(curr => {
+							return {
+								role: GPT,
+								content: new TextDecoder("utf-8").decode(new Uint8Array([...atob(curr)].map(char => char.charCodeAt(0))))
+							}
+						})
 					]
 				)
-
-
-
-			// Save data in Appian record for auditing
-			// if (allparameters["webhook"] && allparameters["webhook"]?.["url"] && allparameters["webhook"]?.["webApiKey"]) {
-			// 	const url = 'https://julian-site.appianci.net/suite/webapi/N9bgEQ';
-			// 	const token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI0MzY1MTVhYS1hYmI4LTQxMjQtOGVmMi00MTM3MjMxZTIyNTUifQ.pgxixl7EL7t6vr6kLbYDTsV0UJZ74Yip6pORe8_unG0';
-
-			// 	const payload = {
-			// 		role: 'user',
-			// 		content: 'hello world',
-			// 		conversationId: 1,
-			// 		messageOrder: 1
-			// 	};
-
-			// 	fetch(url, {
-			// 		method: 'POST',
-			// 		headers: {
-			// 			'Content-Type': 'application/json',
-			// 			'Authorization': `Bearer ${token}`
-			// 		},
-			// 		body: JSON.stringify(payload)
-			// 	})
-			// 		.then(response => response.json())
-			// 		.then(data => console.log(data))
-			// 		.catch(error => console.error(error));
-			// }
-
 		}
 	}
 
@@ -102,9 +76,6 @@ const Input = ({ conversation, setConversation, model, temperature, top_p, n, st
 			payload
 		);
 	}
-
-
-
 
 	return (
 		<div className="text-muted d-flex justify-content-start align-items-start ">
