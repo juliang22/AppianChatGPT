@@ -11,6 +11,7 @@ import {
   MDBCollapse,
 } from "mdb-react-ui-kit";
 import Lottie from "lottie-react";
+import { v4 as uuidv4 } from "uuid";
 
 import typingGif from './Animations/typing.json'
 import Date from "./Components/Date";
@@ -79,6 +80,9 @@ export default function App() {
   const [user, setUser] = useState(null)
   const [userIcon, setUserIcon] = useState(APPIAN_ICON)
   const [GPTIcon, setGPTIcon] = useState(OPENAI_ICON)
+
+  // Webhook for auditing
+  const [conversationId, setConversationId] = useState(uuidv4())
 
   // Style Settings
   const [titleText, setTitleText] = useState(DEFAULT_TITLE_TEXT)
@@ -180,6 +184,8 @@ export default function App() {
 
 
   }, [allparameters, Appian.Component, titleText]);
+
+  console.log(allparameters, conversation);
 
   // Use an effect to scroll to the bottom of the messages container
   useEffect(() => {

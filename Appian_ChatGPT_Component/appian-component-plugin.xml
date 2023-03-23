@@ -3,10 +3,10 @@
   <plugin-info>
     <description>ChatGPT Component Plugin</description>
     <vendor name="Appian" url="www.Appian.com"/>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <support supported="true" phone="xxx-xxx-xxxx" email="techpartners@appian.com" url="https://community.appian.com"/>
   </plugin-info>
-  <component rule-name="ChatGPTChatBot" version="1.0.0">
+  <component rule-name="ChatGPTChatBot" version="1.0.1">
     <sdk-version>2.0.0</sdk-version>
     <supported-user-agents>chrome firefox ie11 edge safari mobile</supported-user-agents>
     <icon-file>OpenAI.svg</icon-file>
@@ -80,6 +80,11 @@
       <name>chatHeight</name>
       <category>input-only</category>
       <type>Text</type>
+    </parameter>
+    <parameter>
+      <name>webhook</name>
+      <category>input-only</category>
+      <type>Dictionary</type>
     </parameter>
   </component>
 </appian-component-plugin>

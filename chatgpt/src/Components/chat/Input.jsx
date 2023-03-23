@@ -1,6 +1,8 @@
 import { MDBIcon } from 'mdb-react-ui-kit'
 import React, { useContext, useEffect } from 'react'
 import { useState } from 'react';
+import iconv from 'iconv-lite'
+
 import { USER, GPT } from '../../constants';
 import AppianContext from "../../context/AppianContext"
 
@@ -42,6 +44,7 @@ const Input = ({ conversation, setConversation, model, temperature, top_p, n, st
 			)
 
 			setIsLoading(false)
+
 			// Response
 			response?.payload?.error ?
 				setConversation(
@@ -53,7 +56,15 @@ const Input = ({ conversation, setConversation, model, temperature, top_p, n, st
 						}
 					]) :
 				setConversation(
-					[...updatedConversation, ...response?.payload?.choices.map(curr => { return { role: GPT, content: curr.message?.content } })]
+					[
+						...updatedConversation,
+						...response?.payload?.messages.map(curr => {
+							return {
+								role: GPT,
+								content: new TextDecoder("utf-8").decode(new Uint8Array([...atob(curr)].map(char => char.charCodeAt(0))))
+							}
+						})
+					]
 				)
 		}
 	}
@@ -65,9 +76,6 @@ const Input = ({ conversation, setConversation, model, temperature, top_p, n, st
 			payload
 		);
 	}
-
-
-
 
 	return (
 		<div className="text-muted d-flex justify-content-start align-items-start ">
