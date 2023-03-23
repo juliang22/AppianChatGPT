@@ -42,18 +42,13 @@ const Input = ({ conversation, setConversation, model, temperature, top_p, n, st
 					...(user && { user })
 				}
 			)
-			// .then(response => {
-			// 	const msg = JSON.stringify(response?.payload?.choices[0]?.message.content);
-			// 	console.log("msg", msg);
-			// 	const buf = iconv.encode(msg, 'ISO-8859-1');
-			// 	console.log("buf", buf);
-			// 	const utf8Data = iconv.decode(buf, 'utf8');
-			// 	console.log("done", utf8Data);
-			// 	return utf8Data
-			// });
 
 			setIsLoading(false)
+			console.log(response);
+			console.log(response.payload);
+			console.log(response.payload.messages[0]);
 			// Response
+
 			response?.payload?.error ?
 				setConversation(
 					[
@@ -64,33 +59,38 @@ const Input = ({ conversation, setConversation, model, temperature, top_p, n, st
 						}
 					]) :
 				setConversation(
-					[...updatedConversation, ...response?.payload?.choices.map(curr => { return { role: GPT, content: curr.message?.content } })]
+					[
+						...updatedConversation,
+						...response?.payload?.messages.map(curr => { return { role: GPT, content: new TextDecoder("utf-8").decode(new Uint8Array([...atob(curr)].map(char => char.charCodeAt(0)))) } })
+					]
 				)
 
+
+
 			// Save data in Appian record for auditing
-			if (allparameters["webhook"] && allparameters["webhook"]?.["url"] && allparameters["webhook"]?.["webApiKey"]) {
-				const url = 'https://julian-site.appianci.net/suite/webapi/N9bgEQ';
-				const token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI0MzY1MTVhYS1hYmI4LTQxMjQtOGVmMi00MTM3MjMxZTIyNTUifQ.pgxixl7EL7t6vr6kLbYDTsV0UJZ74Yip6pORe8_unG0';
+			// if (allparameters["webhook"] && allparameters["webhook"]?.["url"] && allparameters["webhook"]?.["webApiKey"]) {
+			// 	const url = 'https://julian-site.appianci.net/suite/webapi/N9bgEQ';
+			// 	const token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI0MzY1MTVhYS1hYmI4LTQxMjQtOGVmMi00MTM3MjMxZTIyNTUifQ.pgxixl7EL7t6vr6kLbYDTsV0UJZ74Yip6pORe8_unG0';
 
-				const payload = {
-					role: 'user',
-					content: 'hello world',
-					conversationId: 1,
-					messageOrder: 1
-				};
+			// 	const payload = {
+			// 		role: 'user',
+			// 		content: 'hello world',
+			// 		conversationId: 1,
+			// 		messageOrder: 1
+			// 	};
 
-				fetch(url, {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-						'Authorization': `Bearer ${token}`
-					},
-					body: JSON.stringify(payload)
-				})
-					.then(response => response.json())
-					.then(data => console.log(data))
-					.catch(error => console.error(error));
-			}
+			// 	fetch(url, {
+			// 		method: 'POST',
+			// 		headers: {
+			// 			'Content-Type': 'application/json',
+			// 			'Authorization': `Bearer ${token}`
+			// 		},
+			// 		body: JSON.stringify(payload)
+			// 	})
+			// 		.then(response => response.json())
+			// 		.then(data => console.log(data))
+			// 		.catch(error => console.error(error));
+			// }
 
 		}
 	}
