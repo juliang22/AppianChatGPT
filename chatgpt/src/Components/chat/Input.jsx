@@ -1,7 +1,6 @@
 import { MDBIcon } from 'mdb-react-ui-kit'
 import React, { useContext, useEffect } from 'react'
 import { useState } from 'react';
-import iconv from 'iconv-lite'
 
 import { USER, GPT } from '../../constants';
 import AppianContext from "../../context/AppianContext"
@@ -19,12 +18,20 @@ const Input = ({ conversation, setConversation, model, temperature, top_p, n, st
 
 	}, [Appian.Component, allparameters]);
 
-	async function addItem() {
+	async function addItem(e) {
+		e.preventDefault();
+
 		if (message !== undefined && message !== null && message.trim() !== "") {
+			// Updating conversation state, setting loading state, and emptying message
 			const updatedConversation = [...conversation, { role: USER, content: message }]
 			setConversation(updatedConversation)
 			setIsLoading(true)
 			setMessage("")
+
+			// Setting textarea back to one line
+			const textarea = document.querySelector('.form-control-lg');
+			textarea.style.height = 'initial';
+
 			const response = await handleClientApi(
 				connectedSystem,
 				"chatCompletion",
@@ -79,15 +86,18 @@ const Input = ({ conversation, setConversation, model, temperature, top_p, n, st
 
 	return (
 		<div className="text-muted d-flex justify-content-start align-items-start ">
-			<input
-				type="text"
-				className="form-control form-control-lg "
-				id="exampleFormControlInput3"
+			<textarea
+				className="form-control form-control-lg"
 				placeholder="Type message"
 				value={message}
-				required
-				onChange={e => setMessage(e.target.value)}
-				onKeyDown={e => e.key === "Enter" && addItem()}
+				onInput={(e) => {
+					e.target.style.height = 'auto'
+					e.target.style.height = e.target.scrollHeight + 'px'
+					setMessage(e.target.value)
+				}}
+				onKeyDown={(e) => e.key === 'Enter' && addItem(e)}
+				style={{ maxHeight: '8rem', resize: 'none' }}
+				rows={1}
 			/>
 			<a className="ms-3" href="#!">
 				<MDBIcon style={{ color: sendButtonColor }} fas icon="paper-plane" size="2x" onClick={addItem} />

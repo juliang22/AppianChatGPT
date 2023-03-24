@@ -63,6 +63,7 @@ export default function App() {
   const { allparameters, Appian } = useContext(AppianContext)
 
   const [showShow, setShowShow] = useState(false);
+  const [caret, setCaret] = useState("chevron-down");
   const [conversation, setConversation] = useState([
     { role: SYSTEM, content: allparameters[SYSTEM_MESSAGE_KEY] || DEFAULT_SYSTEM_MESSAGE },
     { role: GPT, content: allparameters[INITIAL_MESSAGE_KEY] || DEFAULT_INITIAL_MESSAGE }
@@ -102,7 +103,10 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false)
 
   // toggle for collapsing UI
-  const toggleShow = () => setShowShow(!showShow);
+  const toggleShow = () => {
+    caret === "chevron-down" ? setCaret("chevron-up") : setCaret("chevron-down")
+    setShowShow(!showShow);
+  }
 
   useEffect(() => {
     // Setting Height
@@ -201,7 +205,7 @@ export default function App() {
           <MDBBtn onClick={toggleShow} style={{ backgroundColor: titleBackgroundColor, textTransform: "none", fontSize: "1.1rem" }} size="lg" block>
             <div class="d-flex justify-content-between align-items-center" style={{ color: titleTextColor, height: topBarRef.current?.clientHeight }} ref={topBarRef}>
               {titleText}
-              <MDBIcon fas icon="chevron-down" />
+              <MDBIcon fas icon={caret} />
             </div>
           </MDBBtn>
           <MDBCollapse show={showShow} >
