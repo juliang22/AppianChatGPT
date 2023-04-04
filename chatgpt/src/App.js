@@ -189,8 +189,6 @@ export default function App() {
 
   }, [allparameters, Appian.Component, titleText]);
 
-  console.log(allparameters, conversation);
-
   // Use an effect to scroll to the bottom of the messages container
   useEffect(() => {
     const messagesContainer = messagesContainerRef.current;
