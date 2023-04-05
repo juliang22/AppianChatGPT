@@ -20,7 +20,7 @@ const Input = ({ conversation, setConversation, model, temperature, top_p, n, st
 
 
 	const handleStreamData = useCallback((data) => {
-		console.log(data);
+		// console.log(data);
 		setReceivedText((prevText) => prevText + data + ' ');
 
 		setConversation(prevConvo => {
