@@ -10,3 +10,92 @@ export function isValidUrl(str) {
 		return false;
 	}
 }
+
+
+const THREE_COLUMN_FORM = `a!localVariables(
+	local!cancel: false,
+	a!formLayout(
+		label: "Form",
+		contents: {
+		  a!sectionLayout(
+			contents: {}
+		  ),
+		  a!sectionLayout(
+			label: "Section",
+			contents: {
+			  a!columnsLayout(
+				columns: {
+				  a!columnLayout(
+					contents: {}
+				  ),
+				  a!columnLayout(
+					contents: {}
+				  ),
+				  a!columnLayout(
+					contents: {}
+				  )
+				}
+			  )
+			}
+		  )
+		},
+		buttons: a!buttonLayout(
+		  primaryButtons: {
+			a!buttonWidget(
+			  label: "Submit",
+			  submit: true,
+			  style: "PRIMARY"
+			)
+		  },
+		  secondaryButtons: {
+			a!buttonWidget(
+			  label: "Cancel",
+			  value: true,
+			  saveInto: local!cancel,
+			  submit: true,
+			  style: "NORMAL",
+			  validate: false
+			)
+		  }
+		)
+	  )
+)`
+
+
+export function createSAIL() {
+
+	return `You are an Appian SAIL interface generator. Modify the following interface based on the prompt.
+
+	INTERFACE TO MODIFY: ${THREE_COLUMN_FORM}
+	
+	RULES:
+	- Do not make up any new functions. 
+	- Do not use parameters outside of those listed in the functions context below.
+	- Try to use as many parameters as possible
+	- Always set parameters of functions. For example, a!dateField(label: "Date", value: now(), saveInto: now(), readOnly: true) is correct while a!dateField(label: "Date", value: now(), saveInto: now(), readOnly: ) is incorrect because the value of readOnly was not set
+	- Send back only SAIL code.
+	- Start all of your SAIL responses with a!localVariables
+	- If using a!dropDownField, a!radioButtonField, or any other fields with the paramters choiceLabels and choiceValues, always make sure to set both choiceLabels and choiceValues. choiceLabels and choiceValues should have the same value
+	- Only use parameters that are in each function's description, do not make up your own. For example, a!formLayout has the parameters label, instructions, contents, buttons, validations, validationGroup, skipAutoFocus, showWhen shown in a!formLayout(label, instructions, contents, buttons, validations, validationGroup, skipAutoFocus, showWhen). Do not give a!formLayout a 'placeholder' because it is not in the list of it's parameters.
+	- Always set the value of fields
+	- Only reference local variables that are set at the beginning of the interface within a!localVariables. For example, a!localVariables(local!name, a!textField(label: "Name", value: local!name, saveInto: local!name, required: true)) is correct while a!localVariables(local!date, a!textField(label: "Name", value: local!name, saveInto: local!name, required: true)) is incorrect because the local!name variable is not set at the beginning of a!localVariables
+	- Only use local variables that are declared at the top of the interface and set them with a default value related to their use. Declare all local variables at the top of the interface with:
+		a!localVariables(
+			local!textVar: "",
+			local!integerVar: 0,
+				<INSERT OTHER SAIL FUNCTIONS HERE>
+			)
+
+	ERRORS TO AVOID:
+	- An array of components cannot contain a form layout, dashboard layout, or column layout. For example, a!localVariables(local!example, formLayout(<INSERT OTHER SAIL FUNCTIONS HERE>)) is correct and  a!localVariables(local!example, { formLayout(<INSERT OTHER SAIL FUNCTIONS HERE>) }) is not correct
+	- Always set the placeholder parameter of a!dropdownField components
+	- Always have matching brackets and parenthesis
+	- Logical operators like or(), when(), and and() must wrap around the condition. For example and(local!val, local!val2) or or(local!val, local!val2) or when({true, false, true})
+	- Always wrap the value of the parameter contents in brackets. For example: a!formLayout(label: "Home Loan Form", contents: {a!textField(), a!textField} )
+	- The contents field on a column layout or a formLayout cannot contain a ButtonWidget.
+	- Do not make up functions. If you feel like you need to use a function that does not exist, simply comment it out. For example, isemail() is not a SAIL function, so if you want to use it, comment it out like this: /* validations: isemail("email") */
+	- The contents field on a column layout cannot contain a ButtonWidget. 
+	- A header content layout has an invalid value for "header". Header must be null, a billboard, a card, or a list of billboards or cards.
+	
+	`
+}
