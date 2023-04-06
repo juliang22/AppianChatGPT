@@ -5,14 +5,13 @@ import { useState } from 'react';
 import { USER, GPT } from '../../constants';
 import AppianContext from "../../context/AppianContext"
 import { useEventStream } from '../../hooks/useEventStream';
-import { createSecondPrompt } from '../../Util'
+
 
 const Input = ({ conversation, setConversation, model, temperature, top_p, n, stop, max_tokens, presence_penalty, frequency_penalty, user, sendButtonColor, setIsLoading }) => {
 	const { Appian, allparameters } = useContext(AppianContext)
 	const [message, setMessage] = useState("")
 	const [currentPrompt, setCurrentPrompt] = useState("");
 	const [connectedSystem, setConnectedSystem] = useState("")
-
 
 
 	const [receivedText, setReceivedText] = useState('');
@@ -38,6 +37,11 @@ const Input = ({ conversation, setConversation, model, temperature, top_p, n, st
 
 	const handleStreamEnd = useCallback((data) => {
 		setStartStream(false)
+		setConversation(prevConvo => {
+			console.log(prevConvo)
+			Appian.Component.saveValue('SAILGen', prevConvo[prevConvo.length - 1].content)
+			return prevConvo
+		})
 	}, []);
 
 	const { streamData, error, loading } = useEventStream(
@@ -77,6 +81,8 @@ const Input = ({ conversation, setConversation, model, temperature, top_p, n, st
 			setStartStream((prevStartStream) => !prevStartStream);
 			setCurrentPrompt(message)
 			setMessage("")
+
+			if (handleStreamEnd !== null && handleStreamEnd !== undefined) console.log(handleStreamEnd);
 
 
 			setIsLoading(false)

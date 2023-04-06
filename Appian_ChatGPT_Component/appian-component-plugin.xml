@@ -81,5 +81,15 @@
       <category>input-only</category>
       <type>Text</type>
     </parameter>
+    <parameter>
+      <name>SAILGen</name>
+      <category>input-output</category>
+      <type>Text</type>
+    </parameter>
+    <parameter>
+      <name>file</name>
+      <category>input-output</category>
+      <type>Variant</type>
+    </parameter>
   </component>
 </appian-component-plugin>
