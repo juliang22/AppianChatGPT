@@ -50,7 +50,7 @@ export function useEventStream(url, streamCallback, startStream, streamEndCallba
 				const response = await fetch(url, {
 					headers: {
 						'Content-Type': 'application/json',
-						Authorization: `Bearer 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`,
+						Authorization: `Bearer sk-1MhvaBusTJrP1i3VauEZT3BlbkFJg2IdnudBdeWqsECbOEU71`,
 					},
 					method: 'POST',
 					body: JSON.stringify({
