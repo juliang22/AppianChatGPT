@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
-import FileInput from './FileInput';
+// import FileInput from './FileInput';
+import PDFUpload from './PDFUpload';
 
 function getExtension(filename) {
   var parts = filename.split('.');
@@ -72,47 +73,52 @@ class Input extends Component{
 
   render() {
     var fileType = getFileType(this.state.fileName);
-     switch(fileType) {
-      case 'txt':
-        return(
-          <div>
-            <h1>plain</h1>
-            <FileInput/>
-          </div>
-        );
-      case 'csv':
-        // continue
-        return(
-          <div>
-            <h1>plain</h1>
-            <FileInput/>
-          </div>
-        );
-      case 'pdf':
-        // process pdf content
-        return(
-          <div>
-            <h1>pdf</h1>
-            <FileInput/>
-          </div>
-        );
-      case 'docx':
-        // process docx content
-        return(
-          <div>
-            <h1>docx</h1>
-            <FileInput/>
-          </div>
-        );
-      default:
-        // continue
-        return(
-          <div>
-            <h1>defualt</h1>
-            <FileInput/>
-          </div>
-        );
-    }
+    retunr (
+        <div>
+            <PDFUpload/>
+        </div>
+    )
+    //  switch(fileType) {
+    //   case 'txt':
+    //     return(
+    //       <div>
+    //         <h1>plain</h1>
+    //         <FileInput/>
+    //       </div>
+    //     );
+    //   case 'csv':
+    //     // continue
+    //     return(
+    //       <div>
+    //         <h1>plain</h1>
+    //         <FileInput/>
+    //       </div>
+    //     );
+    //   case 'pdf':
+    //     // process pdf content
+    //     return(
+    //       <div>
+    //         <h1>pdf</h1>
+    //         <FileInput/>
+    //       </div>
+    //     );
+    //   case 'docx':
+    //     // process docx content
+    //     return(
+    //       <div>
+    //         <h1>docx</h1>
+    //         <FileInput/>
+    //       </div>
+    //     );
+    //   default:
+    //     // continue
+    //     return(
+    //       <div>
+    //         <h1>defualt</h1>
+    //         <FileInput/>
+    //       </div>
+    //     );
+    // }
     
   }
 
