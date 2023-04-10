@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 // import FileInput from './FileInput';
 import PDFUpload from './PDFUpload';
+import ReadPDF from './ReadPDF';
 
 function getExtension(filename) {
   var parts = filename.split('.');
@@ -75,7 +76,7 @@ class Input extends Component{
     var fileType = getFileType(this.state.fileName);
     retunr (
         <div>
-            <PDFUpload/>
+            <ReadPDF/>
         </div>
     )
     //  switch(fileType) {

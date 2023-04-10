@@ -7,6 +7,8 @@ import AppianContext from "../../context/AppianContext"
 import { useEventStream } from '../../hooks/useEventStream';
 import { createSecondPrompt } from '../../Util'
 import PlainUpload from './upload/PlainUpload';
+import ReadPDF from './upload/ReadPDF';
+import PDFUpload from './upload/PDFUpload';
 
 const Input = ({ conversation, setConversation, model, temperature, top_p, n, stop, max_tokens, presence_penalty, frequency_penalty, user, sendButtonColor, setIsLoading }) => {
 	const { Appian, allparameters } = useContext(AppianContext)
@@ -87,7 +89,8 @@ const Input = ({ conversation, setConversation, model, temperature, top_p, n, st
 	}
 
 
-
+	const pdfUrl = "./llc1011.pdf";
+	// const pdfUrl = "/Users/alex.king/Documents/PlugIns/AppianChatGPT/chatgpt/public/llc1011.pdf";
 	return (
 		<div className="text-muted d-flex justify-content-start align-items-start ">
 			<textarea
@@ -105,7 +108,8 @@ const Input = ({ conversation, setConversation, model, temperature, top_p, n, st
 			/>
 			<a className="ms-3" href="#!">
 				{/* file upload component goes here */}
-				<PlainUpload />
+				{/* <ReadPDF pdfUrl={pdfUrl}/> */}
+				<PDFUpload />
 				<MDBIcon style={{ color: sendButtonColor }} fas icon="paper-plane" size="2x" onClick={addItem} />
 			</a>
 		</div>
