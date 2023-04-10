@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
+
 import { createSAIL, THREE_COLUMN_FORM } from '../Util';
 
-export function useEventStream(url, streamCallback, startStream, streamEndCallback, prompt) {
+export function useEventStream(url, streamCallback, startStream, streamEndCallback, prompt, fileText) {
 	const [streamData, setStreamData] = useState([]);
 	const [error, setError] = useState(null);
 	const [loading, setLoading] = useState(true);
@@ -45,7 +46,8 @@ export function useEventStream(url, streamCallback, startStream, streamEndCallba
 			return contents.join('');
 		}
 
-		async function fetchStream(prompt) {
+		async function fetchStream(prompt, fileText) {
+
 			try {
 				const response = await fetch(url, {
 					headers: {
@@ -57,7 +59,7 @@ export function useEventStream(url, streamCallback, startStream, streamEndCallba
 						model: 'gpt-4',
 						messages: [
 							{ role: 'system', content: createSAIL() },
-							{ role: 'user', content: `Modify the SAIL interface based off the following prompt. PROMPT: ${prompt} INTERFACE TO MODIFY: ${THREE_COLUMN_FORM}` }
+							{ role: 'user', content: `Modify the SAIL interface based off the following form. FORM: ${fileText} INTERFACE TO MODIFY: ${THREE_COLUMN_FORM}` }
 
 							// { role: 'user', content: `generate 10 reandom words` }
 						],
@@ -91,13 +93,14 @@ export function useEventStream(url, streamCallback, startStream, streamEndCallba
 		}
 
 		console.log("PROOOMPT", prompt)
-		fetchStream(prompt);
+		console.log("FILETEXT", fileText)
+		fetchStream(prompt, fileText);
 
 		return () => {
 			isMounted = false;
 			controller.abort();
 		};
-	}, [url, streamCallback, startStream, streamEndCallback, prompt]);
+	}, [url, streamCallback, startStream, streamEndCallback, prompt, fileText]);
 
 	return { streamData, error, loading };
 }
