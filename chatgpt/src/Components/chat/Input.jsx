@@ -6,7 +6,7 @@ import { USER, GPT } from '../../constants';
 import AppianContext from "../../context/AppianContext"
 import { useEventStream } from '../../hooks/useEventStream';
 import { createSecondPrompt } from '../../Util'
-import PlainUpload from './upload/PlainUpload';
+import PDFUpload from './upload/PDFUpload';
 
 const Input = ({ conversation, setConversation, model, temperature, top_p, n, stop, max_tokens, presence_penalty, frequency_penalty, user, sendButtonColor, setIsLoading }) => {
 	const { Appian, allparameters } = useContext(AppianContext)
@@ -105,7 +105,8 @@ const Input = ({ conversation, setConversation, model, temperature, top_p, n, st
 			/>
 			<a className="ms-3" href="#!">
 				{/* file upload component goes here */}
-				<PlainUpload />
+				{/* <PlainUpload /> */}
+				<PDFUpload />
 				<MDBIcon style={{ color: sendButtonColor }} fas icon="paper-plane" size="2x" onClick={addItem} />
 			</a>
 		</div>
