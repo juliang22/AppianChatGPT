@@ -217,14 +217,23 @@ export default function App() {
     <MDBContainer fluid style={{ overflow: "auto", "overflowX": "hidden", padding: 0 }} ref={messagesContainerRef}>
       <MDBRow className="d-flex justify-content-center">
         <MDBCol md="8" lg="6" xl="4" style={{ width: "100%", height: showShow ? topBarHeight : "auto" }}>
-          <MDBBtn onClick={toggleShow} style={{ backgroundColor: titleBackgroundColor, textTransform: "none", fontSize: "1.1rem" }} size="lg" block>
+          <MDBBtn onClick={toggleShow}
+          style={{ 
+            backgroundColor: titleBackgroundColor, 
+            textTransform: "none", 
+            fontSize: "1.1rem",
+            zIndex: "100",
+            top: "0",
+            position: "sticky",
+           }} 
+          size="lg" block>
             <div class="d-flex justify-content-between align-items-center" style={{ color: titleTextColor, height: topBarRef.current?.clientHeight }} ref={topBarRef}>
               {titleText}
               <MDBIcon fas icon={caret} />
             </div>
           </MDBBtn>
           <MDBCollapse show={showShow} >
-            <MDBCard id="chat4" >
+            <MDBCard id="chat4">
               <MDBCardBody>
                 <Date />
                 {conversation.map((convo, i) =>
