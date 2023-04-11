@@ -196,6 +196,7 @@ export default function App() {
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
   }, [conversation, autoScroll]);
+
   useEffect(() => {
     function handleScroll() {
       const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current;
