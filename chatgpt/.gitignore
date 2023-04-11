@@ -10,7 +10,6 @@
 
 # production
 /build
-Appian_ChatGPT_Component/
 
 # misc
 .DS_Store
