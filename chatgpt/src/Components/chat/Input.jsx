@@ -78,9 +78,11 @@ const Input = ({ conversation, setConversation, model, temperature, top_p, n, st
 
 		// if (message !== undefined && message !== null && message.trim() !== "") {
 		// Updating conversation state, setting loading state, and emptying message
-		const updatedConversation = [...conversation, { role: USER, content: message }]
-		setConversation(updatedConversation)
-		setIsLoading(true)
+		if (message !== undefined && message !== null && message.trim() !== "") {
+			const updatedConversation = [...conversation, { role: USER, content: message }]
+			setConversation(updatedConversation)
+			setIsLoading(true)
+		}
 
 
 		// Setting textarea back to one line

@@ -75,7 +75,8 @@ export function createSAIL() {
 	- Only use parameters that are in each function's description, do not make up your own. For example, a!formLayout has the parameters label, instructions, contents, buttons, validations, validationGroup, skipAutoFocus, showWhen shown in a!formLayout(label, instructions, contents, buttons, validations, validationGroup, skipAutoFocus, showWhen). Do not give a!formLayout a 'placeholder' because it is not in the list of it's parameters.
 	- Always set the value of fields
 	- Only reference local variables that are set at the beginning of the interface within a!localVariables. For example, a!localVariables(local!name, a!textField(label: "Name", value: local!name, saveInto: local!name, required: true)) is correct while a!localVariables(local!date, a!textField(label: "Name", value: local!name, saveInto: local!name, required: true)) is incorrect because the local!name variable is not set at the beginning of a!localVariables
-	- Only use local variables that are declared at the top of the interface and set them with a default value related to their use. Declare all local variables at the top of the interface with:
+	- Only use local variables that are declared at the top of the interface. If a local variable (local!variableName) is not set at the top of the interface within the a!localVariabels function, do not use it.
+	- Set localVariables with a default value related to their use. Declare all local variables at the top of the interface with:
 		a!localVariables(
 			local!textVar: "defaultTextVar",
 			local!integerVar: 0,

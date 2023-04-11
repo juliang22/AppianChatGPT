@@ -82,9 +82,6 @@ export default function App() {
   const [userIcon, setUserIcon] = useState(APPIAN_ICON)
   const [GPTIcon, setGPTIcon] = useState(OPENAI_ICON)
 
-  // Webhook for auditing
-  const [conversationId, setConversationId] = useState(uuidv4())
-
   // Style Settings
   const [titleText, setTitleText] = useState(DEFAULT_TITLE_TEXT)
   const [titleTextColor, setTitleTextColor] = useState(DEFAULT_WHITE_TEXT)
@@ -98,6 +95,9 @@ export default function App() {
   // Height
   const [topBarHeight, setTopBarHeight] = useState(CHAT_HEIGHT_DEFAULT);
   const topBarRef = useRef(null);
+
+  // Scrollbar autoscrolling down unless user wants to scroll up
+  const [autoScroll, setAutoScroll] = useState(true);
 
   // Typing indicator
   const [isLoading, setIsLoading] = useState(false)
@@ -191,10 +191,26 @@ export default function App() {
 
   // Use an effect to scroll to the bottom of the messages container
   useEffect(() => {
-    const messagesContainer = messagesContainerRef.current;
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-  }, [conversation]);
+    if (autoScroll) {
+      const messagesContainer = messagesContainerRef.current;
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+  }, [conversation, autoScroll]);
+  useEffect(() => {
+    function handleScroll() {
+      const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current;
+      const isAtBottom = Math.abs(scrollTop + clientHeight - scrollHeight) < 10;
 
+      setAutoScroll(isAtBottom);
+    }
+
+    const container = messagesContainerRef.current;
+    container.addEventListener("scroll", handleScroll);
+
+    return () => {
+      container.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
 
   return (
     <MDBContainer fluid style={{ overflow: "auto", "overflowX": "hidden", padding: 0 }} ref={messagesContainerRef}>
