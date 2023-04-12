@@ -83,6 +83,7 @@ export function createSAIL() {
 				<INSERT OTHER SAIL FUNCTIONS HERE>
 			)
 	- Use the contains() functions if you want to check if a value is in a map or a local variable. For example contains({"A", "b", "c"}, "A") returns true while "A" in {"A", "b", "c"} returns an error
+	- add divider lines between each sectionLayout in the form with the sectionLayout component's field named 'divider' set to the value "BELOW", for example:  divider: "BELOW"
 	
 	
 
@@ -96,5 +97,7 @@ export function createSAIL() {
 	- Do not make up functions. If you feel like you need to use a function that does not exist, simply comment it out. For example, isemail() is not a SAIL function, so if you want to use it, comment it out like this: /* validations: isemail("email") */
 	- The contents field on a column layout cannot contain a ButtonWidget. 
 	- A header content layout has an invalid value for "header". Header must be null, a billboard, a card, or a list of billboards or cards.
+	- showDividers is not a valid field in the sectionLayout component
+
 	`
 }
