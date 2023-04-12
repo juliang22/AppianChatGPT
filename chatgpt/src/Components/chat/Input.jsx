@@ -1,88 +1,113 @@
 import { MDBIcon } from 'mdb-react-ui-kit'
-import React, { useContext, useEffect } from 'react'
+import React, { useCallback, useContext, useEffect } from 'react'
 import { useState } from 'react';
+import { getDocument } from 'pdfjs-dist/webpack';
 
-import { USER, GPT } from '../../constants';
+import { USER, GPT, } from '../../constants';
 import AppianContext from "../../context/AppianContext"
+import { useEventStream } from '../../hooks/useEventStream';
+
 
 const Input = ({ conversation, setConversation, model, temperature, top_p, n, stop, max_tokens, presence_penalty, frequency_penalty, user, sendButtonColor, setIsLoading }) => {
 	const { Appian, allparameters } = useContext(AppianContext)
 	const [message, setMessage] = useState("")
-	const [connectedSystem, setConnectedSystem] = useState("")
+	const [currentPrompt, setCurrentPrompt] = useState("");
+	const [file, setFile] = useState(null);
+	const [fileText, setFileText] = useState(null);
 
-	useEffect(() => {
-		// Checking if required connectedSystem parameter exists
-		allparameters["openAIConnectedSystem"] !== null && allparameters["openAIConnectedSystem"] !== undefined ?
-			setConnectedSystem(allparameters["openAIConnectedSystem"]) :
-			Appian.Component.setValidations("Missing Required Parameter: openAIConnectedSystem")
+	const [receivedText, setReceivedText] = useState('');
+	const [startStream, setStartStream] = useState(false);
 
-	}, [Appian.Component, allparameters]);
+
+	const handleStreamData = useCallback((data) => {
+		// console.log(data);
+		setReceivedText((prevText) => prevText + data + ' ');
+
+		setConversation(prevConvo => {
+			const firstMessageInStream = prevConvo[prevConvo.length - 1]?.role === USER
+			const modifiedConvo = firstMessageInStream ?
+				prevConvo :
+				prevConvo.slice(0, -1)
+			const content = firstMessageInStream ?
+				data :
+				prevConvo[prevConvo.length - 1]?.content + data
+			return [...modifiedConvo, { role: GPT, content }]
+		})
+
+	}, [setConversation]);
+
+	const handleStreamEnd = useCallback((data) => {
+		setStartStream(false)
+		setConversation(prevConvo => {
+			console.log(prevConvo)
+			Appian.Component.saveValue('SAILGen', prevConvo[prevConvo.length - 1].content)
+			return prevConvo
+		})
+	}, []);
+
+	const { streamData, error, loading } = useEventStream(
+		'https://api.openai.com/v1/chat/completions',
+		handleStreamData,
+		startStream,
+		handleStreamEnd,
+		currentPrompt,
+		fileText
+	);
 
 	async function addItem(e) {
 		e.preventDefault();
 
+		if (!file) return;
+
+		const fileReader = new FileReader();
+		fileReader.onload = async (event) => {
+			const arrayBuffer = event.target.result;
+
+			// Parse the PDF from the ArrayBuffer
+			const pdf = await getDocument({ data: arrayBuffer }).promise;
+			let fullText = '';
+			for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+				const page = await pdf.getPage(pageNum);
+				const content = await page.getTextContent();
+				const text = content.items.map(item => item.str).join(' ');
+				fullText += text + '\n';
+			}
+			setFileText(fullText)
+		}
+		fileReader.readAsArrayBuffer(file);
+
+		// if (message !== undefined && message !== null && message.trim() !== "") {
+		// Updating conversation state, setting loading state, and emptying message
 		if (message !== undefined && message !== null && message.trim() !== "") {
-			// Updating conversation state, setting loading state, and emptying message
 			const updatedConversation = [...conversation, { role: USER, content: message }]
 			setConversation(updatedConversation)
 			setIsLoading(true)
-			setMessage("")
-
-			// Setting textarea back to one line
-			const textarea = document.querySelector('.form-control-lg');
-			textarea.style.height = 'initial';
-
-			const response = await handleClientApi(
-				connectedSystem,
-				"chatCompletion",
-				{
-					messages: updatedConversation.filter((item) => !item.hasOwnProperty("error")),
-					model,
-					// if the value is truthy, spread the object into the main payload, if not, don't add it as a param to the payload
-					...(temperature && { temperature }),
-					...(top_p && { top_p }),
-					...(n && { n }),
-					...(stop && { stop }),
-					...(max_tokens && { max_tokens }),
-					...(presence_penalty && { presence_penalty }),
-					...(frequency_penalty && { frequency_penalty }),
-					...(user && { user })
-				}
-			)
-
-			setIsLoading(false)
-
-			// Response
-			response?.payload?.error ?
-				setConversation(
-					[
-						...updatedConversation,
-						{
-							role: GPT,
-							content: `Unable to connect to ChatGPT. Error: ${JSON.stringify(JSON.stringify(response?.payload?.error?.message)).replace(/"/g, '\\"').replace(/\\|"|'/g, '')}, ErrorCode: ${JSON.stringify(JSON.stringify(response?.payload?.error?.type)).replace(/"/g, '\\"').replace(/\\|"|'/g, '')}`, error: true
-						}
-					]) :
-				setConversation(
-					[
-						...updatedConversation,
-						...response?.payload?.messages.map(curr => {
-							return {
-								role: GPT,
-								content: new TextDecoder("utf-8").decode(new Uint8Array([...atob(curr)].map(char => char.charCodeAt(0))))
-							}
-						})
-					]
-				)
 		}
+
+
+		// Setting textarea back to one line
+		const textarea = document.querySelector('.form-control-lg');
+		textarea.style.height = 'initial';
+
+
+		//TODO: openai call
+		setStartStream((prevStartStream) => !prevStartStream);
+		setCurrentPrompt(message)
+		setMessage("")
+
+		if (handleStreamEnd !== null && handleStreamEnd !== undefined) console.log(handleStreamEnd);
+
+
+		setIsLoading(false)
+
+
+		// }
 	}
 
-	async function handleClientApi(connectedSystem, friendlyName, payload) {
-		return await Appian.Component.invokeClientApi(
-			connectedSystem,
-			friendlyName,
-			payload
-		);
-	}
+	const handleFileChange = (e) => {
+		setConversation(prevConvo => [...prevConvo, { role: USER, content: `Uploaded file ${e.target.files[0]?.name}. Press send to convert to SAIL interface.` }])
+		setFile(e.target.files[0]);
+	};
 
 	return (
 		<div className="text-muted d-flex justify-content-start align-items-start ">
@@ -99,6 +124,10 @@ const Input = ({ conversation, setConversation, model, temperature, top_p, n, st
 				style={{ maxHeight: '8rem', resize: 'none' }}
 				rows={1}
 			/>
+			<input type="file" className="form-control d-none" id="fileInput" onChange={handleFileChange} />
+			<label className="ms-3 input-group-text" htmlFor="fileInput" style={{ border: 'none', cursor: 'pointer' }}>
+				<MDBIcon style={{ color: sendButtonColor }} fas icon="paperclip" size="2x" />
+			</label>
 			<a className="ms-3" href="#!">
 				<MDBIcon style={{ color: sendButtonColor }} fas icon="paper-plane" size="2x" onClick={addItem} />
 			</a>

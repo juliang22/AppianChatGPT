@@ -82,9 +82,6 @@ export default function App() {
   const [userIcon, setUserIcon] = useState(APPIAN_ICON)
   const [GPTIcon, setGPTIcon] = useState(OPENAI_ICON)
 
-  // Webhook for auditing
-  const [conversationId, setConversationId] = useState(uuidv4())
-
   // Style Settings
   const [titleText, setTitleText] = useState(DEFAULT_TITLE_TEXT)
   const [titleTextColor, setTitleTextColor] = useState(DEFAULT_WHITE_TEXT)
@@ -98,6 +95,9 @@ export default function App() {
   // Height
   const [topBarHeight, setTopBarHeight] = useState(CHAT_HEIGHT_DEFAULT);
   const topBarRef = useRef(null);
+
+  // Scrollbar autoscrolling down unless user wants to scroll up
+  const [autoScroll, setAutoScroll] = useState(true);
 
   // Typing indicator
   const [isLoading, setIsLoading] = useState(false)
@@ -191,23 +191,49 @@ export default function App() {
 
   // Use an effect to scroll to the bottom of the messages container
   useEffect(() => {
-    const messagesContainer = messagesContainerRef.current;
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-  }, [conversation]);
+    if (autoScroll) {
+      const messagesContainer = messagesContainerRef.current;
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+  }, [conversation, autoScroll]);
 
+  useEffect(() => {
+    function handleScroll() {
+      const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current;
+      const isAtBottom = Math.abs(scrollTop + clientHeight - scrollHeight) < 10;
+
+      setAutoScroll(isAtBottom);
+    }
+
+    const container = messagesContainerRef.current;
+    container.addEventListener("scroll", handleScroll);
+
+    return () => {
+      container.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
 
   return (
     <MDBContainer fluid style={{ overflow: "auto", "overflowX": "hidden", padding: 0 }} ref={messagesContainerRef}>
       <MDBRow className="d-flex justify-content-center">
-        <MDBCol md="8" lg="6" xl="4" style={{ width: "100%", height: showShow ? topBarHeight : "auto" }}>
-          <MDBBtn onClick={toggleShow} style={{ backgroundColor: titleBackgroundColor, textTransform: "none", fontSize: "1.1rem" }} size="lg" block>
+        <MDBCol md="8" lg="6" xl="4" style={{ width: "100%", maxHeight: "300px", height: showShow ? topBarHeight : "auto" }}>
+          <MDBBtn onClick={toggleShow}
+          style={{ 
+            backgroundColor: titleBackgroundColor, 
+            textTransform: "none", 
+            fontSize: "1.1rem",
+            zIndex: "100",
+            top: "0",
+            position: "sticky",
+           }} 
+          size="lg" block>
             <div class="d-flex justify-content-between align-items-center" style={{ color: titleTextColor, height: topBarRef.current?.clientHeight }} ref={topBarRef}>
               {titleText}
               <MDBIcon fas icon={caret} />
             </div>
           </MDBBtn>
           <MDBCollapse show={showShow} >
-            <MDBCard id="chat4" >
+            <MDBCard id="chat4">
               <MDBCardBody>
                 <Date />
                 {conversation.map((convo, i) =>
@@ -229,8 +255,8 @@ export default function App() {
                   </div>
                 )}
               </MDBCardBody>
-
-              <MDBCardFooter >
+            </MDBCard>
+            <MDBCardFooter >
                 <Input
                   conversation={conversation}
                   setConversation={setConversation}
@@ -247,7 +273,6 @@ export default function App() {
                   setIsLoading={setIsLoading}
                 />
               </MDBCardFooter>
-            </MDBCard>
           </MDBCollapse>
         </MDBCol>
       </MDBRow>
