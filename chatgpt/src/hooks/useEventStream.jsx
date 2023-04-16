@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
+import { createSAILGenPrompt } from '../Util';
 
-import { createSAIL, THREE_COLUMN_FORM } from '../Util';
-
-export function useEventStream(url, streamCallback, startStream, streamEndCallback, prompt, fileText) {
+export function useEventStream(url, streamCallback, startStream, streamEndCallback, prompt, fileText, Appian) {
 	const [streamData, setStreamData] = useState([]);
 	const [error, setError] = useState(null);
 	const [loading, setLoading] = useState(true);
@@ -24,7 +23,7 @@ export function useEventStream(url, streamCallback, startStream, streamEndCallba
 			for (const event of events) {
 				try {
 					if (event === 'data: [DONE]') {
-						// Add 'DONE' to contents when the event string is a "done" signal
+						// Add nothing to contents when the event string is a "done" signal
 						contents.push('');
 					} else if (event.startsWith('data: ')) {
 						// Parse the string as JSON
@@ -52,20 +51,10 @@ export function useEventStream(url, streamCallback, startStream, streamEndCallba
 				const response = await fetch(url, {
 					headers: {
 						'Content-Type': 'application/json',
-						Authorization: `Bearer ${process.env.REACT_APP_OPENAI_KEY}`,
+						'Authorization': `Bearer ${process.env.REACT_APP_OPENAI_KEY}`,
 					},
 					method: 'POST',
-					body: JSON.stringify({
-						model: 'gpt-4',
-						messages: [
-							{ role: 'system', content: createSAIL() },
-							{ role: 'user', content: `Modify the SAIL interface based off the following form. FORM: ${fileText} INTERFACE TO MODIFY: ${THREE_COLUMN_FORM}` }
-
-							// { role: 'user', content: `generate 10 reandom words` }
-						],
-						stream: true,
-						temperature: 0
-					}),
+					body: createSAILGenPrompt(prompt, fileText),
 					signal,
 				});
 
@@ -77,7 +66,7 @@ export function useEventStream(url, streamCallback, startStream, streamEndCallba
 					const { value, done } = await reader.read();
 
 					if (done) {
-						streamEndCallback()
+						streamEndCallback(false)
 						break;
 					}
 

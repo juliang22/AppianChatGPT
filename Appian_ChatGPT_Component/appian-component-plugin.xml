@@ -87,9 +87,9 @@
       <type>Text</type>
     </parameter>
     <parameter>
-      <name>file</name>
+      <name>conversation</name>
       <category>input-output</category>
-      <type>Variant</type>
+      <type>Dictionary?list</type>
     </parameter>
   </component>
 </appian-component-plugin>

@@ -12,7 +12,7 @@ export function isValidUrl(str) {
 }
 
 
-export const THREE_COLUMN_FORM = `a!localVariables(
+export const LLC_FORM = `a!localVariables(
 	a!formLayout(
 		label: "Form",
 		contents: {
@@ -57,15 +57,59 @@ export const THREE_COLUMN_FORM = `a!localVariables(
 		  }
 		)
 	  )
-)`
+	)
+`
+
+export const LLC_FORM2 =
+	`
+a!localVariables(
+	a!sectionLayout(
+	  label: "" /*INSERT FORM TITLE*/ ,
+	  contents: {
+		a!sectionLayout(
+		  contents: {}
+		),
+		a!sectionLayout(
+		  label: "Section",
+		  contents: {
+			a!columnsLayout(
+			  columns: {
+				a!columnLayout(
+				  contents: {}
+				),
+				a!columnLayout(
+				  contents: {}
+				),
+				a!columnLayout(
+				  contents: {}
+				)
+			  }
+			),
+			a!buttonArrayLayout(
+			  buttons: {
+				a!buttonWidget(
+				  label: "Submit",
+				  icon: "clipboard-check",
+				  iconPosition: "START",
+				  size: "STANDARD",
+				  style: "PRIMARY"
+				),
+			  },
+			  align: "END"
+			)
+		  }
+		)
+	  }
+	  )
+  )
+`
 
 
-export function createSAIL() {
 
-	return `You are an Appian SAIL interface generator. Modify the following interface based on the prompt.
+export const SYSTEM_PROMPT = `You are an Appian SAIL interface generator. Modify the following interface based on the prompt.
 	
 	RULES:
-	- Do not make up any new functions. 
+	- Do not make up any new functions
 	- Do not use parameters outside of those listed in the functions context below.
 	- Try to use as many parameters as possible
 	- Always set parameters of functions. For example, a!dateField(label: "Date", value: now(), saveInto: now(), readOnly: true) is correct while a!dateField(label: "Date", value: now(), saveInto: now(), readOnly: ) is incorrect because the value of readOnly was not set
@@ -83,12 +127,19 @@ export function createSAIL() {
 				<INSERT OTHER SAIL FUNCTIONS HERE>
 			)
 	- Use the contains() functions if you want to check if a value is in a map or a local variable. For example contains({"A", "b", "c"}, "A") returns true while "A" in {"A", "b", "c"} returns an error
-	
+	- All parameter values for color should be set with a hex value. For example, labelColor of a!sectionLayout should be set to #454B1B or a green variant if the user asks for green.
+	- Always set the placeholder parameter of a!dropdownField components
+	- Always set the value of a!dropdownField to the first option from the choiceLabels parameter
+	- add divider lines between each sectionLayout in the form with the sectionLayout component's field named 'divider' set to the value "BELOW", for example:  divider: "BELOW"
+	- When inserting into the SAIL Interface any images or logos from the inputted form, use the SAIL component imageField.
+	- The label in the sample interface currently assigned to "Title" is going to be the title of the generated interface. Assign this label accordingly when generating the interface.
+	- Use a!dropdownField instead of a!radioButtonField
+	- a!buttonWidget size parameter should always be set with the value "STANDARD"
+	- Always make sure that there are matching parenthesis, brackets, and braces
 	
 
 	ERRORS TO AVOID:
 	- An array of components cannot contain a form layout, dashboard layout, or column layout. For example, a!localVariables(local!example, formLayout(<INSERT OTHER SAIL FUNCTIONS HERE>)) is correct and  a!localVariables(local!example, { formLayout(<INSERT OTHER SAIL FUNCTIONS HERE>) }) is not correct
-	- Always set the placeholder parameter of a!dropdownField components
 	- Always have matching brackets and parenthesis
 	- Logical operators like or(), when(), and and() must wrap around the condition. For example and(local!val, local!val2) or or(local!val, local!val2) or when({true, false, true})
 	- Always wrap the value of the parameter contents in brackets. For example: a!formLayout(label: "Home Loan Form", contents: {a!textField(), a!textField} )
@@ -96,5 +147,26 @@ export function createSAIL() {
 	- Do not make up functions. If you feel like you need to use a function that does not exist, simply comment it out. For example, isemail() is not a SAIL function, so if you want to use it, comment it out like this: /* validations: isemail("email") */
 	- The contents field on a column layout cannot contain a ButtonWidget. 
 	- A header content layout has an invalid value for "header". Header must be null, a billboard, a card, or a list of billboards or cards.
+	- showDividers is not a valid field in the sectionLayout component
 	`
+
+
+export function createSAILGenPrompt(prompt, fileText) {
+	return JSON.stringify({
+		model: 'gpt-4',
+		messages: [
+			{ role: 'system', content: SYSTEM_PROMPT },
+			{
+				role: 'user', content: `Modify the SAIL interface in the following style based off the following form. ${prompt} FORM: ${fileText} INTERFACE TO MODIFY: ${LLC_FORM2}.
+			
+				Return the interface in one line, with no new line characters.`
+			}
+
+			// { role: 'user', content: `generate 10 random words` }
+		],
+		stream: true,
+		temperature: 0
+	})
 }
+
+

@@ -9,20 +9,15 @@ import { useEventStream } from '../../hooks/useEventStream';
 
 
 const Input = ({ conversation, setConversation, model, temperature, top_p, n, stop, max_tokens, presence_penalty, frequency_penalty, user, sendButtonColor, setIsLoading }) => {
-	const { Appian, allparameters } = useContext(AppianContext)
-	const [message, setMessage] = useState("")
+	const { Appian } = useContext(AppianContext)
 	const [currentPrompt, setCurrentPrompt] = useState("");
 	const [file, setFile] = useState(null);
 	const [fileText, setFileText] = useState(null);
-
-	const [receivedText, setReceivedText] = useState('');
 	const [startStream, setStartStream] = useState(false);
 
 
 	const handleStreamData = useCallback((data) => {
 		// console.log(data);
-		setReceivedText((prevText) => prevText + data + ' ');
-
 		setConversation(prevConvo => {
 			const firstMessageInStream = prevConvo[prevConvo.length - 1]?.role === USER
 			const modifiedConvo = firstMessageInStream ?
@@ -31,19 +26,25 @@ const Input = ({ conversation, setConversation, model, temperature, top_p, n, st
 			const content = firstMessageInStream ?
 				data :
 				prevConvo[prevConvo.length - 1]?.content + data
-			return [...modifiedConvo, { role: GPT, content }]
+
+			const convoWithNewStreamedVals = [...modifiedConvo, { role: GPT, content }]
+			Appian.Component.saveValue('SAILGen', content)
+			return convoWithNewStreamedVals
 		})
 
-	}, [setConversation]);
+	}, [setConversation, Appian.Component]);
 
-	const handleStreamEnd = useCallback((data) => {
+	const handleStreamEnd = useCallback((stoppedStreamEarly) => {
 		setStartStream(false)
-		setConversation(prevConvo => {
-			console.log(prevConvo)
-			Appian.Component.saveValue('SAILGen', prevConvo[prevConvo.length - 1].content)
-			return prevConvo
-		})
-	}, []);
+		if (!stoppedStreamEarly) {
+			setConversation(prevConvo => {
+				console.log(prevConvo)
+				// Appian.Component.saveValue('SAILGen', prevConvo[prevConvo.length - 1].content)
+				Appian.Component.saveValue('conversation', prevConvo)
+				return prevConvo
+			})
+		}
+	}, [setConversation, Appian.Component]);
 
 	const { streamData, error, loading } = useEventStream(
 		'https://api.openai.com/v1/chat/completions',
@@ -51,57 +52,51 @@ const Input = ({ conversation, setConversation, model, temperature, top_p, n, st
 		startStream,
 		handleStreamEnd,
 		currentPrompt,
-		fileText
+		fileText,
+		Appian
 	);
 
 	async function addItem(e) {
 		e.preventDefault();
 
-		if (!file) return;
+		if (file) {
+			// Reading file text into state
+			const fileReader = new FileReader();
+			fileReader.onload = async (event) => {
+				const arrayBuffer = event.target.result;
 
-		const fileReader = new FileReader();
-		fileReader.onload = async (event) => {
-			const arrayBuffer = event.target.result;
-
-			// Parse the PDF from the ArrayBuffer
-			const pdf = await getDocument({ data: arrayBuffer }).promise;
-			let fullText = '';
-			for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-				const page = await pdf.getPage(pageNum);
-				const content = await page.getTextContent();
-				const text = content.items.map(item => item.str).join(' ');
-				fullText += text + '\n';
+				// Parse the PDF from the ArrayBuffer
+				const pdf = await getDocument({ data: arrayBuffer }).promise;
+				let fullText = '';
+				for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+					const page = await pdf.getPage(pageNum);
+					const content = await page.getTextContent();
+					const text = content.items.map(item => item.str).join(' ');
+					fullText += text + '\n';
+				}
+				setFileText(fullText)
 			}
-			setFileText(fullText)
+			fileReader.readAsArrayBuffer(file);
 		}
-		fileReader.readAsArrayBuffer(file);
 
-		// if (message !== undefined && message !== null && message.trim() !== "") {
 		// Updating conversation state, setting loading state, and emptying message
-		if (message !== undefined && message !== null && message.trim() !== "") {
-			const updatedConversation = [...conversation, { role: USER, content: message }]
-			setConversation(updatedConversation)
-			setIsLoading(true)
-		}
+		// if (message !== undefined && message !== null && message.trim() !== "") {}
+
+		// Saving only the prompt to the user messages chat view, but saving the actual full prompt to the conversation history
+		setConversation(prevConvo => {
+			const updatedConversation = [...prevConvo, { role: USER, content: currentPrompt }]
+			Appian.Component.saveValue('conversation', updatedConversation)
+			return updatedConversation
+		})
 
 
-		// Setting textarea back to one line
+		// Setting textarea input ui back to one line
 		const textarea = document.querySelector('.form-control-lg');
 		textarea.style.height = 'initial';
 
 
-		//TODO: openai call
 		setStartStream((prevStartStream) => !prevStartStream);
-		setCurrentPrompt(message)
-		setMessage("")
-
-		if (handleStreamEnd !== null && handleStreamEnd !== undefined) console.log(handleStreamEnd);
-
-
-		setIsLoading(false)
-
-
-		// }
+		setCurrentPrompt("")
 	}
 
 	const handleFileChange = (e) => {
@@ -114,11 +109,11 @@ const Input = ({ conversation, setConversation, model, temperature, top_p, n, st
 			<textarea
 				className="form-control form-control-lg"
 				placeholder="Type message"
-				value={message}
+				value={currentPrompt}
 				onInput={(e) => {
 					e.target.style.height = 'auto'
 					e.target.style.height = e.target.scrollHeight + 'px'
-					setMessage(e.target.value)
+					setCurrentPrompt(e.target.value)
 				}}
 				onKeyDown={(e) => e.key === 'Enter' && addItem(e)}
 				style={{ maxHeight: '8rem', resize: 'none' }}
@@ -128,9 +123,16 @@ const Input = ({ conversation, setConversation, model, temperature, top_p, n, st
 			<label className="ms-3 input-group-text" htmlFor="fileInput" style={{ border: 'none', cursor: 'pointer' }}>
 				<MDBIcon style={{ color: sendButtonColor }} fas icon="paperclip" size="2x" />
 			</label>
-			<a className="ms-3" href="#!">
-				<MDBIcon style={{ color: sendButtonColor }} fas icon="paper-plane" size="2x" onClick={addItem} />
-			</a>
+			{
+				startStream ?
+					<a className="ms-3" href="#!">
+						<MDBIcon style={{ color: sendButtonColor }} fas icon="stop" size="2x" onClick={() => handleStreamEnd(true)} />
+					</a> :
+					<a className="ms-3" href="#!">
+						<MDBIcon style={{ color: sendButtonColor }} fas icon="paper-plane" size="2x" onClick={addItem} />
+					</a>
+			}
+
 		</div>
 	)
 }
