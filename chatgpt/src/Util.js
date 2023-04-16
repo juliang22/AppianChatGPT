@@ -62,46 +62,47 @@ export const LLC_FORM = `a!localVariables(
 
 export const LLC_FORM2 =
 	`
-a!localVariables(
-	a!sectionLayout(
-	  label: "" /*INSERT FORM TITLE*/ ,
-	  contents: {
+	a!localVariables(
 		a!sectionLayout(
-		  contents: {}
-		),
-		a!sectionLayout(
-		  label: "Section",
 		  contents: {
-			a!columnsLayout(
-			  columns: {
-				a!columnLayout(
-				  contents: {}
+			a!sectionLayout(
+			  label: "" /*INSERT FORM TITLE*/ ,
+			  contents: {},
+			  divider: "BELOW"
+			),
+			a!sectionLayout(
+			  label: "Section",
+			  contents: {
+				a!columnsLayout(
+				  columns: {
+					a!columnLayout(
+					  contents: {}
+					),
+					a!columnLayout(
+					  contents: {}
+					),
+					a!columnLayout(
+					  contents: {}
+					)
+				  }
 				),
-				a!columnLayout(
-				  contents: {}
-				),
-				a!columnLayout(
-				  contents: {}
+				a!buttonArrayLayout(
+				  buttons: {
+					a!buttonWidget(
+					  label: "Submit",
+					  icon: "clipboard-check",
+					  iconPosition: "START",
+					  size: "STANDARD",
+					  style: "PRIMARY"
+					)
+				  },
+				  align: "END"
 				)
 			  }
-			),
-			a!buttonArrayLayout(
-			  buttons: {
-				a!buttonWidget(
-				  label: "Submit",
-				  icon: "clipboard-check",
-				  iconPosition: "START",
-				  size: "STANDARD",
-				  style: "PRIMARY"
-				),
-			  },
-			  align: "END"
 			)
 		  }
 		)
-	  }
 	  )
-  )
 `
 
 

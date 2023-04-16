@@ -16,6 +16,7 @@ const Input = ({ conversation, setConversation, model, temperature, top_p, n, st
 	const [startStream, setStartStream] = useState(false);
 
 
+	const [contentToSave, setContentToSave] = useState("");
 	const handleStreamData = useCallback((data) => {
 		// console.log(data);
 		setConversation(prevConvo => {
@@ -28,7 +29,13 @@ const Input = ({ conversation, setConversation, model, temperature, top_p, n, st
 				prevConvo[prevConvo.length - 1]?.content + data
 
 			const convoWithNewStreamedVals = [...modifiedConvo, { role: GPT, content }]
-			Appian.Component.saveValue('SAILGen', content)
+
+			// Send updates to appian every 2 seconds
+			const currentSecond = new Date().getSeconds();
+			if (currentSecond % 2 === 1) {
+				Appian.Component.saveValue("SAILGen", content);
+			}
+			// Appian.Component.saveValue('SAILGen', content)
 			return convoWithNewStreamedVals
 		})
 
@@ -39,7 +46,6 @@ const Input = ({ conversation, setConversation, model, temperature, top_p, n, st
 		if (!stoppedStreamEarly) {
 			setConversation(prevConvo => {
 				console.log(prevConvo)
-				// Appian.Component.saveValue('SAILGen', prevConvo[prevConvo.length - 1].content)
 				Appian.Component.saveValue('conversation', prevConvo)
 				return prevConvo
 			})
@@ -80,14 +86,13 @@ const Input = ({ conversation, setConversation, model, temperature, top_p, n, st
 		}
 
 		// Updating conversation state, setting loading state, and emptying message
-		// if (message !== undefined && message !== null && message.trim() !== "") {}
-
-		// Saving only the prompt to the user messages chat view, but saving the actual full prompt to the conversation history
-		setConversation(prevConvo => {
-			const updatedConversation = [...prevConvo, { role: USER, content: currentPrompt }]
-			Appian.Component.saveValue('conversation', updatedConversation)
-			return updatedConversation
-		})
+		if (currentPrompt !== undefined && currentPrompt !== null && currentPrompt.trim() !== "") {
+			setConversation(prevConvo => {
+				const updatedConversation = [...prevConvo, { role: USER, content: currentPrompt }]
+				Appian.Component.saveValue('conversation', updatedConversation)
+				return updatedConversation
+			})
+		}
 
 
 		// Setting textarea input ui back to one line

@@ -186,7 +186,7 @@ export default function App() {
     <MDBContainer fluid style={{ overflow: "auto", "overflowX": "hidden", padding: 0 }} ref={messagesContainerRef}>
       <MDBRow className="d-flex justify-content-center">
         <MDBCol md="8" lg="6" xl="4" style={{ width: "100%", height: showShow ? topBarHeight : "auto" }}>
-          <MDBBtn onClick={toggleShow} style={{ backgroundColor: titleBackgroundColor, textTransform: "none", fontSize: "1.1rem" }} size="lg" block>
+          <MDBBtn onClick={toggleShow} style={{ backgroundColor: titleBackgroundColor, textTransform: "none", fontSize: "1.1rem", position: "sticky", top: 0, zIndex: 1000 }} size="lg" block>
             <div class="d-flex justify-content-between align-items-center" style={{ color: titleTextColor, height: topBarRef.current?.clientHeight }} ref={topBarRef}>
               {titleText}
               <MDBIcon fas icon={caret} />
@@ -215,7 +215,6 @@ export default function App() {
                   </div>
                 )}
               </MDBCardBody>
-
               <MDBCardFooter >
                 <Input
                   conversation={conversation}
