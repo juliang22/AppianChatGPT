@@ -10,13 +10,13 @@ import { useEventStream } from '../../hooks/useEventStream';
 
 const Input = ({ conversation, setConversation, model, temperature, top_p, n, stop, max_tokens, presence_penalty, frequency_penalty, user, sendButtonColor, setIsLoading }) => {
 	const { Appian } = useContext(AppianContext)
+	const [userMessage, setUserMessage] = useState("");
 	const [currentPrompt, setCurrentPrompt] = useState("");
 	const [file, setFile] = useState(null);
 	const [fileText, setFileText] = useState(null);
 	const [startStream, setStartStream] = useState(false);
 
 
-	const [contentToSave, setContentToSave] = useState("");
 	const handleStreamData = useCallback((data) => {
 		// console.log(data);
 		setConversation(prevConvo => {
@@ -86,9 +86,9 @@ const Input = ({ conversation, setConversation, model, temperature, top_p, n, st
 		}
 
 		// Updating conversation state, setting loading state, and emptying message
-		if (currentPrompt !== undefined && currentPrompt !== null && currentPrompt.trim() !== "") {
+		if (userMessage !== undefined && userMessage !== null && userMessage.trim() !== "") {
 			setConversation(prevConvo => {
-				const updatedConversation = [...prevConvo, { role: USER, content: currentPrompt }]
+				const updatedConversation = [...prevConvo, { role: USER, content: userMessage }]
 				Appian.Component.saveValue('conversation', updatedConversation)
 				return updatedConversation
 			})
@@ -100,8 +100,9 @@ const Input = ({ conversation, setConversation, model, temperature, top_p, n, st
 		textarea.style.height = 'initial';
 
 
+		setCurrentPrompt(userMessage)
 		setStartStream((prevStartStream) => !prevStartStream);
-		setCurrentPrompt("")
+		setUserMessage("")
 	}
 
 	const handleFileChange = (e) => {
@@ -114,11 +115,11 @@ const Input = ({ conversation, setConversation, model, temperature, top_p, n, st
 			<textarea
 				className="form-control form-control-lg"
 				placeholder="Type message"
-				value={currentPrompt}
+				value={userMessage}
 				onInput={(e) => {
 					e.target.style.height = 'auto'
 					e.target.style.height = e.target.scrollHeight + 'px'
-					setCurrentPrompt(e.target.value)
+					setUserMessage(e.target.value)
 				}}
 				onKeyDown={(e) => e.key === 'Enter' && addItem(e)}
 				style={{ maxHeight: '8rem', resize: 'none' }}

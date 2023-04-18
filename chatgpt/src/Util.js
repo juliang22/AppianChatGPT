@@ -130,13 +130,12 @@ export const SYSTEM_PROMPT = `You are an Appian SAIL interface generator. Modify
 	- Use the contains() functions if you want to check if a value is in a map or a local variable. For example contains({"A", "b", "c"}, "A") returns true while "A" in {"A", "b", "c"} returns an error
 	- All parameter values for color should be set with a hex value. For example, labelColor of a!sectionLayout should be set to #454B1B or a green variant if the user asks for green.
 	- Always set the placeholder parameter of a!dropdownField components
-	- Always set the value of a!dropdownField to the first option from the choiceLabels parameter
 	- add divider lines between each sectionLayout in the form with the sectionLayout component's field named 'divider' set to the value "BELOW", for example:  divider: "BELOW"
 	- When inserting into the SAIL Interface any images or logos from the inputted form, use the SAIL component imageField.
-	- The label in the sample interface currently assigned to "Title" is going to be the title of the generated interface. Assign this label accordingly when generating the interface.
 	- Use a!dropdownField instead of a!radioButtonField
 	- a!buttonWidget size parameter should always be set with the value "STANDARD"
 	- Always make sure that there are matching parenthesis, brackets, and braces
+	- Use a!signatureField to capture user signatures
 	
 
 	ERRORS TO AVOID:
