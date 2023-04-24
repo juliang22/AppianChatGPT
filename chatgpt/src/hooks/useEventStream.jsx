@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { createSAILGenPrompt } from '../Util';
+import { createNoCodeQuery, createSAILGenPrompt } from '../Util';
+import { DEMO_NO_CODE_QUERY, DEMO_SAILGEN } from '../constants';
 
-export function useEventStream(url, streamCallback, startStream, streamEndCallback, prompt, fileText, Appian) {
+export function useEventStream(url, streamCallback, startStream, streamEndCallback, prompt, fileText, demo, systemMessage) {
 	const [streamData, setStreamData] = useState([]);
 	const [error, setError] = useState(null);
 	const [loading, setLoading] = useState(true);
@@ -45,8 +46,19 @@ export function useEventStream(url, streamCallback, startStream, streamEndCallba
 			return contents.join('');
 		}
 
-		async function fetchStream(prompt, fileText) {
+		async function fetchStream(prompt, fileText, demo, systemMessage) {
 
+			let finalPrompt;
+			switch (demo) {
+				case DEMO_NO_CODE_QUERY:
+					finalPrompt = createNoCodeQuery(prompt)
+					break;
+				default:
+					finalPrompt = createSAILGenPrompt(prompt, fileText);
+					break;
+			}
+			console.log(demo, DEMO_NO_CODE_QUERY)
+			console.log(finalPrompt)
 			try {
 				const response = await fetch(url, {
 					headers: {
@@ -54,7 +66,7 @@ export function useEventStream(url, streamCallback, startStream, streamEndCallba
 						'Authorization': `Bearer ${process.env.REACT_APP_OPENAI_KEY}`,
 					},
 					method: 'POST',
-					body: createSAILGenPrompt(prompt, fileText),
+					body: finalPrompt,
 					signal,
 				});
 
@@ -83,13 +95,14 @@ export function useEventStream(url, streamCallback, startStream, streamEndCallba
 
 		console.log("PROOOMPT", prompt)
 		console.log("FILETEXT", fileText)
-		fetchStream(prompt, fileText);
+		console.log("SYStemmessage", systemMessage)
+		fetchStream(prompt, fileText, demo, systemMessage);
 
 		return () => {
 			isMounted = false;
 			controller.abort();
 		};
-	}, [url, streamCallback, startStream, streamEndCallback, prompt, fileText]);
+	}, [url, streamCallback, startStream, streamEndCallback, prompt, fileText, demo, systemMessage]);
 
 	return { streamData, error, loading };
 }

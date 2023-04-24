@@ -3,17 +3,17 @@ import React, { useCallback, useContext, useEffect } from 'react'
 import { useState } from 'react';
 import { getDocument } from 'pdfjs-dist/webpack';
 
-import { USER, GPT, } from '../../constants';
+import { USER, GPT, DEMO_NO_CODE_QUERY, } from '../../constants';
 import AppianContext from "../../context/AppianContext"
 import { useEventStream } from '../../hooks/useEventStream';
 
 
-const Input = ({ conversation, setConversation, model, temperature, top_p, n, stop, max_tokens, presence_penalty, frequency_penalty, user, sendButtonColor, setIsLoading }) => {
+const Input = ({ conversation, setConversation, model, temperature, top_p, n, stop, max_tokens, presence_penalty, frequency_penalty, user, sendButtonColor, setIsLoading, demo, systemMessage }) => {
 	const { Appian } = useContext(AppianContext)
 	const [userMessage, setUserMessage] = useState("");
 	const [currentPrompt, setCurrentPrompt] = useState("");
 	const [file, setFile] = useState(null);
-	const [fileText, setFileText] = useState(null);
+	const [fileText, setFileText] = useState("");
 	const [startStream, setStartStream] = useState(false);
 
 
@@ -46,11 +46,31 @@ const Input = ({ conversation, setConversation, model, temperature, top_p, n, st
 		if (!stoppedStreamEarly) {
 			setConversation(prevConvo => {
 				console.log(prevConvo)
-				Appian.Component.saveValue('conversation', prevConvo)
-				return prevConvo
+				if (demo === DEMO_NO_CODE_QUERY) {
+					const uuidRegex = /\/\* Record UUID: (.*?) \*\//;
+					const queryRegex = /^([\s\S]*?)\/\*/;
+					const explanationRegex = /\/\*(.*?)\*\//;
+
+					const content = prevConvo.slice(-1)[0].content
+					console.log(content)
+					console.log(content.match(uuidRegex)[1])
+					console.log(content.match(queryRegex)[1])
+					console.log(content.match(explanationRegex)[1])
+
+					const uuid = content.match(uuidRegex)[1];
+					const query = content.match(queryRegex)[1];
+					const explanation = content.match(explanationRegex)[1];
+					Appian.Component.saveValue('conversation', [...prevConvo.slice(0, -1), explanation])
+					Appian.Component.saveValue('recordQuery', [uuid, query])
+					return [...prevConvo.slice(0, -1), { role: GPT, content: explanation }]
+				} else {
+					Appian.Component.saveValue('conversation', prevConvo)
+					return prevConvo
+				}
+
 			})
 		}
-	}, [setConversation, Appian.Component]);
+	}, [setConversation, Appian.Component, demo]);
 
 	const { streamData, error, loading } = useEventStream(
 		'https://api.openai.com/v1/chat/completions',
@@ -59,39 +79,53 @@ const Input = ({ conversation, setConversation, model, temperature, top_p, n, st
 		handleStreamEnd,
 		currentPrompt,
 		fileText,
-		Appian
+		demo,
+		systemMessage
 	);
 
 	async function addItem(e) {
 		e.preventDefault();
 
-		if (file) {
-			// Reading file text into state
-			const fileReader = new FileReader();
-			fileReader.onload = async (event) => {
-				const arrayBuffer = event.target.result;
-
-				// Parse the PDF from the ArrayBuffer
-				const pdf = await getDocument({ data: arrayBuffer }).promise;
-				let fullText = '';
-				for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-					const page = await pdf.getPage(pageNum);
-					const content = await page.getTextContent();
-					const text = content.items.map(item => item.str).join(' ');
-					fullText += text + '\n';
+		switch (demo) {
+			case DEMO_NO_CODE_QUERY:
+				if (userMessage !== undefined && userMessage !== null && userMessage.trim() !== "") {
+					setConversation(prevConvo => {
+						const updatedConversation = [...prevConvo, { role: USER, content: userMessage }]
+						Appian.Component.saveValue('conversation', updatedConversation)
+						return updatedConversation
+					})
 				}
-				setFileText(fullText)
-			}
-			fileReader.readAsArrayBuffer(file);
-		}
+				break;
+			default:
+				if (file) {
+					// Reading file text into state
+					const fileReader = new FileReader();
+					fileReader.onload = async (event) => {
+						const arrayBuffer = event.target.result;
 
-		// Updating conversation state, setting loading state, and emptying message
-		if (userMessage !== undefined && userMessage !== null && userMessage.trim() !== "") {
-			setConversation(prevConvo => {
-				const updatedConversation = [...prevConvo, { role: USER, content: userMessage }]
-				Appian.Component.saveValue('conversation', updatedConversation)
-				return updatedConversation
-			})
+						// Parse the PDF from the ArrayBuffer
+						const pdf = await getDocument({ data: arrayBuffer }).promise;
+						let fullText = '';
+						for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+							const page = await pdf.getPage(pageNum);
+							const content = await page.getTextContent();
+							const text = content.items.map(item => item.str).join(' ');
+							fullText += text + '\n';
+						}
+						setFileText(fullText)
+					}
+					fileReader.readAsArrayBuffer(file);
+				}
+
+				// Updating conversation state, setting loading state, and emptying message
+				if (userMessage !== undefined && userMessage !== null && userMessage.trim() !== "") {
+					setConversation(prevConvo => {
+						const updatedConversation = [...prevConvo, { role: USER, content: userMessage }]
+						Appian.Component.saveValue('conversation', updatedConversation)
+						return updatedConversation
+					})
+				}
+				break;
 		}
 
 

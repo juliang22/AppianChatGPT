@@ -14,6 +14,10 @@ export const INITIAL_MESSAGE_KEY = "initialMessage";
 export const CONVERSATION_KEY = "conversation";
 export const DEFAULT_MODEL = "gpt-3.5-turbo";
 export const MODEL_KEY = "model";
+export const DEMO = "demoType";
+export const DEMO_SAILGEN = "demoSailGen";
+export const DEMO_NO_CODE_QUERY = "demoNoCodeQuery";
+
 
 // Developer settings
 export const TEMPERATURE_KEY = "temperature";

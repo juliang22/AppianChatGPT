@@ -17,7 +17,7 @@ import typingGif from './Animations/typing.json'
 import Date from "./Components/Date";
 import Input from "./Components/chat/Input";
 import Bubble from "./Components/chat/Bubble";
-import { D_BLUE, GPT, SYSTEM, DEFAULT_SYSTEM_MESSAGE, DEFAULT_INITIAL_MESSAGE, SYSTEM_MESSAGE_KEY, INITIAL_MESSAGE_KEY, DEFAULT_MODEL, MODEL_KEY, TEMPERATURE_KEY, TOP_P_KEY, N_KEY, STOP_KEY, MAX_TOKENS_KEY, PRESENCE_PENALTY_KEY, FREQUENCY_PENALTY_KEY, USER_KEY, DEFAULT_TITLE_TEXT, DEFAULT_WHITE_TEXT, DEFAULT_BLACK_TEXT, DEFAULT_GPT_CHAT_BG, L_BLUE, TITLE_TEXT_KEY, TITLE_TEXT_COLOR_KEY, TITLE_BACKGROUND_COLOR_KEY, GPT_TEXT_COLOR_KEY, GPT_CHAT_COLOR_KEY, USER_TEXT_COLOR_KEY, USER_CHAT_COLOR_KEY, SEND_BUTTON_COLOR_KEY, USER_ICON_KEY, GPT_ICON_KEY, OPENAI_ICON, APPIAN_ICON, CHAT_HEIGHT_KEY, CHAT_HEIGHT_DEFAULT, CONVERSATION_KEY } from "./constants";
+import { D_BLUE, GPT, SYSTEM, DEFAULT_SYSTEM_MESSAGE, DEFAULT_INITIAL_MESSAGE, SYSTEM_MESSAGE_KEY, INITIAL_MESSAGE_KEY, DEFAULT_MODEL, MODEL_KEY, TEMPERATURE_KEY, TOP_P_KEY, N_KEY, STOP_KEY, MAX_TOKENS_KEY, PRESENCE_PENALTY_KEY, FREQUENCY_PENALTY_KEY, USER_KEY, DEFAULT_TITLE_TEXT, DEFAULT_WHITE_TEXT, DEFAULT_BLACK_TEXT, DEFAULT_GPT_CHAT_BG, L_BLUE, TITLE_TEXT_KEY, TITLE_TEXT_COLOR_KEY, TITLE_BACKGROUND_COLOR_KEY, GPT_TEXT_COLOR_KEY, GPT_CHAT_COLOR_KEY, USER_TEXT_COLOR_KEY, USER_CHAT_COLOR_KEY, SEND_BUTTON_COLOR_KEY, USER_ICON_KEY, GPT_ICON_KEY, OPENAI_ICON, APPIAN_ICON, CHAT_HEIGHT_KEY, CHAT_HEIGHT_DEFAULT, CONVERSATION_KEY, DEMO, DEMO_SAILGEN } from "./constants";
 import AppianContext from "./context/AppianContext"
 import { isHexCode, isValidUrl } from "./Util";
 import Icon from "./Components/chat/Icon";
@@ -45,6 +45,9 @@ export default function App() {
   const [user, setUser] = useState(null)
   const [userIcon, setUserIcon] = useState(APPIAN_ICON)
   const [GPTIcon, setGPTIcon] = useState(OPENAI_ICON)
+  const [demo, setDemo] = useState("SAILGEN")
+  const [sysMessage, setsysMessage] = useState(null)
+
 
   // Style Settings
   const [titleText, setTitleText] = useState(DEFAULT_TITLE_TEXT)
@@ -78,6 +81,8 @@ export default function App() {
   }, [topBarRef.current?.clientHeight, allparameters]);
 
   useEffect(() => {
+    // Setting demo version
+    setDemo(allparameters[DEMO] || DEMO_SAILGEN)
 
     // Setting chat height
     setTopBarHeight(allparameters[CHAT_HEIGHT_KEY] || CHAT_HEIGHT_DEFAULT)
@@ -91,6 +96,7 @@ export default function App() {
     let messages = allparameters[CONVERSATION_KEY] != null && allparameters[CONVERSATION_KEY] !== undefined ?
       [...allparameters[CONVERSATION_KEY].slice(2)] :
       []
+    setsysMessage(systemMessage) // for nocode query demo purposes
     setConversation((prevConversation) => {
       const newDefaultSystemMessage = { role: SYSTEM, content: systemMessage };
       const newDefaultInitialMessage = { role: GPT, content: initialMessage };
@@ -230,6 +236,8 @@ export default function App() {
                   user={user}
                   sendButtonColor={sendButtonColor}
                   setIsLoading={setIsLoading}
+                  demo={demo}
+                  systemMessage={sysMessage}
                 />
               </MDBCardFooter>
             </MDBCard>

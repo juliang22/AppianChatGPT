@@ -91,5 +91,15 @@
       <category>input-output</category>
       <type>Dictionary?list</type>
     </parameter>
+    <parameter>
+      <name>demoType</name>
+      <category>input-only</category>
+      <type>Text</type>
+    </parameter>
+    <parameter>
+      <name>recordQuery</name>
+      <category>input-output</category>
+      <type>Text?list</type>
+    </parameter>
   </component>
 </appian-component-plugin>
