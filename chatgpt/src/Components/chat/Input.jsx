@@ -6,6 +6,7 @@ import { getDocument } from 'pdfjs-dist/webpack';
 import { USER, GPT, DEMO_NO_CODE_QUERY, } from '../../constants';
 import AppianContext from "../../context/AppianContext"
 import { useEventStream } from '../../hooks/useEventStream';
+import { getNoCodeQueryGenValues } from '../../Util';
 
 
 const Input = ({ conversation, setConversation, model, temperature, top_p, n, stop, max_tokens, presence_penalty, frequency_penalty, user, sendButtonColor, setIsLoading, demo, systemMessage }) => {
@@ -16,61 +17,68 @@ const Input = ({ conversation, setConversation, model, temperature, top_p, n, st
 	const [fileText, setFileText] = useState("");
 	const [startStream, setStartStream] = useState(false);
 
+	// Building up no code query response
+	const [noCodeQueryResponse, setNoCodeQueryResponse] = useState("");
+
 
 	const handleStreamData = useCallback((data) => {
-		// console.log(data);
-		setConversation(prevConvo => {
-			const firstMessageInStream = prevConvo[prevConvo.length - 1]?.role === USER
-			const modifiedConvo = firstMessageInStream ?
-				prevConvo :
-				prevConvo.slice(0, -1)
-			const content = firstMessageInStream ?
-				data :
-				prevConvo[prevConvo.length - 1]?.content + data
 
-			const convoWithNewStreamedVals = [...modifiedConvo, { role: GPT, content }]
+		if (demo === DEMO_NO_CODE_QUERY) {
 
-			// Send updates to appian every 2 seconds
-			const currentSecond = new Date().getSeconds();
-			if (currentSecond % 2 === 1) {
-				Appian.Component.saveValue("SAILGen", content);
-			}
-			// Appian.Component.saveValue('SAILGen', content)
-			return convoWithNewStreamedVals
-		})
+			setNoCodeQueryResponse(prevResponse => {
+				const updatedResponse = prevResponse + data;
 
-	}, [setConversation, Appian.Component]);
+				const { query, explanation, uuid } = getNoCodeQueryGenValues(updatedResponse);
+				if (query) Appian.Component.saveValue("SAILGen", query)
+				if (query && uuid) Appian.Component.saveValue('recordQuery', [uuid, query])
+				if (explanation && !query) {
+					setConversation(prevConvo => {
+						Appian.Component.saveValue('conversation', [...prevConvo.slice(0, -1), explanation])
+						const firstMessageInStream = prevConvo[prevConvo.length - 1]?.role === USER
+						const modifiedConvo = firstMessageInStream ?
+							prevConvo :
+							prevConvo.slice(0, -1)
+						return [...modifiedConvo, { role: GPT, content: explanation }]
+					})
+				}
+
+				return updatedResponse
+			})
+		} else {
+			setConversation(prevConvo => {
+				const firstMessageInStream = prevConvo[prevConvo.length - 1]?.role === USER
+				const modifiedConvo = firstMessageInStream ?
+					prevConvo :
+					prevConvo.slice(0, -1)
+				const content = firstMessageInStream ?
+					data :
+					prevConvo[prevConvo.length - 1]?.content + data
+
+				const convoWithNewStreamedVals = [...modifiedConvo, { role: GPT, content }]
+
+				// Send updates to appian every 2 seconds
+				if (new Date().getSeconds() % 2 === 1) {
+					Appian.Component.saveValue("SAILGen", content);
+				}
+				// Appian.Component.saveValue('SAILGen', content)
+				return convoWithNewStreamedVals
+			})
+		}
+
+
+	}, [setConversation, Appian.Component, demo]);
 
 	const handleStreamEnd = useCallback((stoppedStreamEarly) => {
 		setStartStream(false)
 		if (!stoppedStreamEarly) {
 			setConversation(prevConvo => {
 				console.log(prevConvo)
-				if (demo === DEMO_NO_CODE_QUERY) {
-					const uuidRegex = /\/\* Record UUID: (.*?) \*\//;
-					const queryRegex = /^([\s\S]*?)\/\*/;
-					const explanationRegex = /\/\*(.*?)\*\//;
-
-					const content = prevConvo.slice(-1)[0].content
-					console.log(content)
-					console.log(content.match(uuidRegex)[1])
-					console.log(content.match(queryRegex)[1])
-					console.log(content.match(explanationRegex)[1])
-
-					const uuid = content.match(uuidRegex)[1];
-					const query = content.match(queryRegex)[1];
-					const explanation = content.match(explanationRegex)[1];
-					Appian.Component.saveValue('conversation', [...prevConvo.slice(0, -1), explanation])
-					Appian.Component.saveValue('recordQuery', [uuid, query])
-					return [...prevConvo.slice(0, -1), { role: GPT, content: explanation }]
-				} else {
-					Appian.Component.saveValue('conversation', prevConvo)
-					return prevConvo
-				}
+				Appian.Component.saveValue('conversation', prevConvo)
+				return prevConvo
 
 			})
 		}
-	}, [setConversation, Appian.Component, demo]);
+	}, [setConversation, Appian.Component]);
 
 	const { streamData, error, loading } = useEventStream(
 		'https://api.openai.com/v1/chat/completions',
