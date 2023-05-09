@@ -3,7 +3,7 @@ import React, { useCallback, useContext, useEffect } from 'react'
 import { useState } from 'react';
 import { getDocument } from 'pdfjs-dist/webpack';
 
-import { USER, GPT, DEMO_NO_CODE_QUERY, } from '../../constants';
+import { USER, GPT, DEMO_NO_CODE_QUERY, DEMO_END_USER_REPORTING, DEMO_SAILGEN, } from '../../constants';
 import AppianContext from "../../context/AppianContext"
 import { useEventStream } from '../../hooks/useEventStream';
 import { getNoCodeQueryGenValues } from '../../Util';
@@ -23,15 +23,18 @@ const Input = ({ conversation, setConversation, model, temperature, top_p, n, st
 
 	const handleStreamData = useCallback((data) => {
 
-		if (demo === DEMO_NO_CODE_QUERY) {
+		if (demo === DEMO_NO_CODE_QUERY || demo === DEMO_END_USER_REPORTING) {
 
 			setNoCodeQueryResponse(prevResponse => {
 				const updatedResponse = prevResponse + data;
 
 				const { query, explanation, uuid } = getNoCodeQueryGenValues(updatedResponse);
-				if (query) Appian.Component.saveValue("SAILGen", query)
+				if (query) {
+					Appian.Component.saveValue("SAILGen", query)
+					console.log("QUERY: ", query)
+				}
 				if (query && uuid) Appian.Component.saveValue('recordQuery', [uuid, query])
-				if (explanation && !query) {
+				if (explanation) { // Not performant, need to stop updating when explanation is finished
 					setConversation(prevConvo => {
 						Appian.Component.saveValue('conversation', [...prevConvo.slice(0, -1), explanation])
 						const firstMessageInStream = prevConvo[prevConvo.length - 1]?.role === USER
@@ -57,9 +60,9 @@ const Input = ({ conversation, setConversation, model, temperature, top_p, n, st
 				const convoWithNewStreamedVals = [...modifiedConvo, { role: GPT, content }]
 
 				// Send updates to appian every 2 seconds
-				if (new Date().getSeconds() % 2 === 1) {
-					Appian.Component.saveValue("SAILGen", content);
-				}
+				// if (new Date().getSeconds() % 2 === 1) {
+				Appian.Component.saveValue("SAILGen", content);
+				// }
 				// Appian.Component.saveValue('SAILGen', content)
 				return convoWithNewStreamedVals
 			})
@@ -94,48 +97,33 @@ const Input = ({ conversation, setConversation, model, temperature, top_p, n, st
 	async function addItem(e) {
 		e.preventDefault();
 
-		switch (demo) {
-			case DEMO_NO_CODE_QUERY:
-				if (userMessage !== undefined && userMessage !== null && userMessage.trim() !== "") {
-					setConversation(prevConvo => {
-						const updatedConversation = [...prevConvo, { role: USER, content: userMessage }]
-						Appian.Component.saveValue('conversation', updatedConversation)
-						return updatedConversation
-					})
-				}
-				break;
-			default:
-				if (file) {
-					// Reading file text into state
-					const fileReader = new FileReader();
-					fileReader.onload = async (event) => {
-						const arrayBuffer = event.target.result;
-
-						// Parse the PDF from the ArrayBuffer
-						const pdf = await getDocument({ data: arrayBuffer }).promise;
-						let fullText = '';
-						for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-							const page = await pdf.getPage(pageNum);
-							const content = await page.getTextContent();
-							const text = content.items.map(item => item.str).join(' ');
-							fullText += text + '\n';
-						}
-						setFileText(fullText)
-					}
-					fileReader.readAsArrayBuffer(file);
-				}
-
-				// Updating conversation state, setting loading state, and emptying message
-				if (userMessage !== undefined && userMessage !== null && userMessage.trim() !== "") {
-					setConversation(prevConvo => {
-						const updatedConversation = [...prevConvo, { role: USER, content: userMessage }]
-						Appian.Component.saveValue('conversation', updatedConversation)
-						return updatedConversation
-					})
-				}
-				break;
+		if (userMessage !== undefined && userMessage !== null && userMessage.trim() !== "") {
+			setConversation(prevConvo => {
+				const updatedConversation = [...prevConvo, { role: USER, content: userMessage }]
+				Appian.Component.saveValue('conversation', updatedConversation)
+				return updatedConversation
+			})
 		}
 
+		if (demo === DEMO_SAILGEN && file) {
+			// Reading file text into state
+			const fileReader = new FileReader();
+			fileReader.onload = async (event) => {
+				const arrayBuffer = event.target.result;
+
+				// Parse the PDF from the ArrayBuffer
+				const pdf = await getDocument({ data: arrayBuffer }).promise;
+				let fullText = '';
+				for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+					const page = await pdf.getPage(pageNum);
+					const content = await page.getTextContent();
+					const text = content.items.map(item => item.str).join(' ');
+					fullText += text + '\n';
+				}
+				setFileText(fullText)
+			}
+			fileReader.readAsArrayBuffer(file);
+		}
 
 		// Setting textarea input ui back to one line
 		const textarea = document.querySelector('.form-control-lg');
@@ -148,7 +136,7 @@ const Input = ({ conversation, setConversation, model, temperature, top_p, n, st
 	}
 
 	const handleFileChange = (e) => {
-		setConversation(prevConvo => [...prevConvo, { role: USER, content: `Uploaded file ${e.target.files[0]?.name}. Press send to convert to SAIL interface.` }])
+		setConversation(prevConvo => [...prevConvo, { role: USER, content: `Uploaded file ${e.target.files[0]?.name}. Would you like me to make any UI changes?` }])
 		setFile(e.target.files[0]);
 	};
 

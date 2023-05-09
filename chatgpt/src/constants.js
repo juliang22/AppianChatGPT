@@ -17,6 +17,7 @@ export const MODEL_KEY = "model";
 export const DEMO = "demoType";
 export const DEMO_SAILGEN = "demoSailGen";
 export const DEMO_NO_CODE_QUERY = "demoNoCodeQuery";
+export const DEMO_END_USER_REPORTING = "demoEndUserReporting";
 
 
 // Developer settings

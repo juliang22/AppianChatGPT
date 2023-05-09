@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { createNoCodeQuery, createSAILGenPrompt } from '../Util';
-import { DEMO_NO_CODE_QUERY, DEMO_SAILGEN } from '../constants';
+import { createEndUserReportingQuery, createNoCodeQuery, createNoCodeQuery2, createSAILGenPrompt } from '../Util';
+import { DEMO_END_USER_REPORTING, DEMO_NO_CODE_QUERY, DEMO_SAILGEN } from '../constants';
 
 export function useEventStream(url, streamCallback, startStream, streamEndCallback, prompt, fileText, demo, systemMessage) {
 	const [streamData, setStreamData] = useState([]);
@@ -15,7 +15,6 @@ export function useEventStream(url, streamCallback, startStream, streamEndCallba
 		const signal = controller.signal;
 
 		function parseSSE(sseString) {
-			console.log(sseString)
 			const contents = [];
 
 			// Split the input string by line breaks
@@ -48,27 +47,42 @@ export function useEventStream(url, streamCallback, startStream, streamEndCallba
 
 		async function fetchStream(prompt, fileText, demo, systemMessage) {
 
+			console.log("PROOOMPT", prompt)
+			console.log("FILETEXT", fileText)
+			console.log("SYStemmessage", systemMessage)
 			let finalPrompt;
 			switch (demo) {
 				case DEMO_NO_CODE_QUERY:
-					finalPrompt = createNoCodeQuery(prompt)
+					finalPrompt = createNoCodeQuery2(systemMessage, prompt)
+					break;
+
+				case DEMO_END_USER_REPORTING:
+					finalPrompt = createEndUserReportingQuery(prompt)
 					break;
 				default:
 					finalPrompt = createSAILGenPrompt(prompt, fileText);
 					break;
 			}
-			console.log(demo, DEMO_NO_CODE_QUERY)
-			console.log(finalPrompt)
+
 			try {
-				const response = await fetch(url, {
+				const response = await fetch("https://OpenAITestAppian2.openai.azure.com/openai/deployments/GPT4_32k/chat/completions?api-version=2023-03-15-preview", {
 					headers: {
 						'Content-Type': 'application/json',
-						'Authorization': `Bearer ${process.env.REACT_APP_OPENAI_KEY}`,
+						'api-key': `${process.env.REACT_APP_AZURE_KEY}`,
 					},
 					method: 'POST',
 					body: finalPrompt,
 					signal,
 				});
+				// const response = await fetch(url, {
+				// 	headers: {
+				// 		'Content-Type': 'application/json',
+				// 		'Authorization': `Bearer ${process.env.REACT_APP_OPENAI_KEY}`,
+				// 	},
+				// 	method: 'POST',
+				// 	body: finalPrompt,
+				// 	signal,
+				// });
 
 				setLoading(false);
 				const reader = response.body.getReader();
@@ -93,9 +107,6 @@ export function useEventStream(url, streamCallback, startStream, streamEndCallba
 			}
 		}
 
-		console.log("PROOOMPT", prompt)
-		console.log("FILETEXT", fileText)
-		console.log("SYStemmessage", systemMessage)
 		fetchStream(prompt, fileText, demo, systemMessage);
 
 		return () => {
